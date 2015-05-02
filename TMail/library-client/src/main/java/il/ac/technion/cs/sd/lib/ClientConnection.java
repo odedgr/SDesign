@@ -27,9 +27,15 @@ public class ClientConnection<T extends Serializable> {
 	final private Messenger messenger;
 	final private String serverAddress;
 	
-	static <T extends Serializable> ClientConnection<T> create(String clientAddress, String serverAddress) throws MessengerException {
+	public static <T extends Serializable> ClientConnection<T> create(String clientAddress, String serverAddress) throws MessengerException {
 		Messenger messanger = new MessengerFactory().start(clientAddress);
 		return new ClientConnection<T>(serverAddress, messanger);
+	}
+	
+	// TODO maybe need to save state (active / inactive)?
+	public void kill() throws MessengerException {
+		messenger.kill();
+		
 	}
 	
 	public ClientConnection(String serverAddress, Messenger messenger) {
@@ -39,6 +45,10 @@ public class ClientConnection<T extends Serializable> {
 	
 	public String address() {
 		return messenger.getAddress();
+	}
+	
+	public String server() {
+		return serverAddress;
 	}
 	
 	// TODO: handle/ignore exceptions according to staff orders
