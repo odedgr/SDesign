@@ -22,24 +22,21 @@ import il.ac.technion.cs.sd.msg.MessengerFactory;
  * 
  * 
  */
-public class ClientConnection<T extends Serializable> {
+public class ServerConnection<T extends Serializable> {
 	
 	final private Messenger messenger;
-	final private String serverAddress;
 	
-	public static <T extends Serializable> ClientConnection<T> create(String clientAddress, String serverAddress) throws MessengerException {
-		Messenger messanger = new MessengerFactory().start(clientAddress);
-		return new ClientConnection<T>(serverAddress, messanger);
+	public static <T extends Serializable> ServerConnection<T> create(String address) throws MessengerException {
+		Messenger messanger = new MessengerFactory().start(address);
+		return new ServerConnection<T>(messanger);
 	}
 	
 	// TODO maybe need to save state (active / inactive)?
 	public void kill() throws MessengerException {
 		messenger.kill();
-		
 	}
 	
-	public ClientConnection(String serverAddress, Messenger messenger) {
-		this.serverAddress = serverAddress;
+	private ServerConnection(Messenger messenger) {
 		this.messenger = messenger;
 	}
 	
@@ -47,12 +44,8 @@ public class ClientConnection<T extends Serializable> {
 		return messenger.getAddress();
 	}
 	
-	public String server() {
-		return serverAddress;
-	}
-	
 	// TODO: handle/ignore exceptions according to staff orders
-	public void send(T msg) {
+	public void send(String clientAddress, T msg) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		ObjectOutputStream oos = null;
 		try {
@@ -63,13 +56,14 @@ public class ClientConnection<T extends Serializable> {
 			e.printStackTrace();
 		}
 		try {
-			messenger.send(serverAddress, bos.toByteArray());
+			messenger.send(clientAddress, bos.toByteArray());
 		} catch (MessengerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+	// TODO: how do we get the address of the client?
 	public Optional<T> receiveSingle() {
 		Optional<byte[]> bytes;
 		try {
