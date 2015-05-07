@@ -1,6 +1,11 @@
 package il.ac.technion.cs.sd.app.mail;
 
-public class Mail {
+import java.io.Serializable;
+
+public class Mail implements Serializable{
+
+	private static final long serialVersionUID = -6926661379066284375L;
+	
 	public final String from;
 	public final String to;
 	public final String content;
