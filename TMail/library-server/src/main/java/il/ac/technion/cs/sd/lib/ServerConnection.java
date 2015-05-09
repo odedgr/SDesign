@@ -33,8 +33,12 @@ public class ServerConnection<T extends Serializable> {
 		return new ServerConnection<T>(address);
 	}
 	
+	public boolean isActive() {
+		return (null != messenger);
+	}
+	
 	public void stop() {
-		if (null == this.messenger) {  // already stopped
+		if (!isActive()) {
 			return;
 		}
 		
@@ -50,7 +54,7 @@ public class ServerConnection<T extends Serializable> {
 	}
 	
 	public void start() {
-		if (null != this.messenger) { // already started - no need to start again
+		if (isActive()) { 
 			return;
 		}
 		
