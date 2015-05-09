@@ -61,6 +61,8 @@ public class ServerMailApplication {
 		loadDb();
 		sConn.start();
 		this.active = true;
+		
+		// TODO start listening for incoming requests, using the sConn receive methods
 	}
 	
 	/**
@@ -80,14 +82,22 @@ public class ServerMailApplication {
 	public void clean() {
 		mailboxes = new HashMap<String, ClientMailBox>();
 		// TODO should sConn also be reset?
-		// TODO shoud the state change?
+		// TODO should the state change?
 	}
 	
 		////////////////
 	
 	private void addNewMail(Mail mail) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Not implemented");
+		MailEntry entry = new MailEntry(mail);
+		
+		String sender = mail.from;
+		String receiver = mail.to;
+		
+		ClientMailBox senderBox = mailboxes.get(sender);
+		ClientMailBox receiverBox = mailboxes.get(receiver);
+		
+		senderBox.addSentMailEntry(entry);
+		receiverBox.addReceivedMailEntry(entry);
 	}
 	
 	private List<Mail> getCorrespondencesBetween(String requester, String otherClient, int howMany) {
