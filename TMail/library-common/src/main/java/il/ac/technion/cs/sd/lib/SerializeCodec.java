@@ -10,8 +10,8 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 
-public class SerializeEncoderDecoder<T extends Serializable> implements
-		EncoderDecoder<T> {
+public class SerializeCodec<T extends Serializable> implements
+		Codec<T> {
 
 	@Override
 	public byte[] encode(T obj) {

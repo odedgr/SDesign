@@ -3,13 +3,13 @@ package il.ac.technion.cs.sd.lib;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
-public class MessageWithSenderEncoderDecoder<Message> implements
-		EncoderDecoder<MessageWithSender<Message>> {
+public class MessageWithSenderCodec<Message> implements
+		Codec<MessageWithSender<Message>> {
 
-	final private EncoderDecoder<Message> messageEncoder;
+	final private Codec<Message> messageCodec;
 	
-	MessageWithSenderEncoderDecoder(EncoderDecoder<Message> med) {
-		messageEncoder = med;
+	MessageWithSenderCodec(Codec<Message> med) {
+		messageCodec = med;
 	}
 	
 	@Override
@@ -19,7 +19,7 @@ public class MessageWithSenderEncoderDecoder<Message> implements
 		// 2. Sender address string as raw bytes
 		// 3. Message context, serialized with the given EncoderDecoder.
 		
-		byte[] messageBytes = messageEncoder.encode(message.content);
+		byte[] messageBytes = messageCodec.encode(message.content);
 		byte[] senderBytes = message.sender.getBytes(Charset.defaultCharset());
 		
 		ByteBuffer buff = ByteBuffer.allocate(Integer.BYTES
@@ -47,7 +47,7 @@ public class MessageWithSenderEncoderDecoder<Message> implements
 		buff.get(contentBytes);
 		
 		return new MessageWithSender<Message>(
-				messageEncoder.decode(contentBytes),
+				messageCodec.decode(contentBytes),
 				new String(senderBytes, Charset.defaultCharset()));
 	}
 

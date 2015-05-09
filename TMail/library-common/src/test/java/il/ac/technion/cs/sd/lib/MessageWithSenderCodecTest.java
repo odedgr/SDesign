@@ -4,42 +4,42 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-public class MessageWithSenderEncoderDecoderTest {
+public class MessageWithSenderCodecTest {
 
 	@Test
 	public void TestIntegerMessage() {
-		EncoderDecoder<Integer> ed = new SerializeEncoderDecoder<Integer>();
-		MessageWithSenderEncoderDecoder<Integer> msed =
-				new MessageWithSenderEncoderDecoder<Integer>(ed);
+		Codec<Integer> codec = new SerializeCodec<Integer>();
+		MessageWithSenderCodec<Integer> msc =
+				new MessageWithSenderCodec<Integer>(codec);
 		
 		MessageWithSender<Integer> ms = new MessageWithSender<Integer>(42, "MosheTheSender");
 		
-		byte[] b = msed.encode(ms);
-		MessageWithSender<Integer> decoded = msed.decode(b);
+		byte[] b = msc.encode(ms);
+		MessageWithSender<Integer> decoded = msc.decode(b);
 		assertEquals(ms.content, decoded.content);
 		assertEquals(ms.sender, decoded.sender);
 	}
 	
 	@Test
 	public void TestStringMessage() {
-		EncoderDecoder<String> ed = new SerializeEncoderDecoder<String>();
-		MessageWithSenderEncoderDecoder<String> msed =
-				new MessageWithSenderEncoderDecoder<String>(ed);
+		Codec<String> codec = new SerializeCodec<String>();
+		MessageWithSenderCodec<String> msc =
+				new MessageWithSenderCodec<String>(codec);
 
 		MessageWithSender<String> ms = new MessageWithSender<String>(
 				"Hello there!", "SarahTheSender");
 
-		byte[] b = msed.encode(ms);
-		MessageWithSender<String> decoded = msed.decode(b);
+		byte[] b = msc.encode(ms);
+		MessageWithSender<String> decoded = msc.decode(b);
 		assertEquals(ms.content, decoded.content);
 		assertEquals(ms.sender, decoded.sender);
 	}
 	
 	@Test
 	public void CheckSerializableClassEncodedAndDecodedProperly() {
-		EncoderDecoder<Person> ed = new SerializeEncoderDecoder<Person>();
-		MessageWithSenderEncoderDecoder<Person> msed =
-				new MessageWithSenderEncoderDecoder<Person>(ed);
+		Codec<Person> codec = new SerializeCodec<Person>();
+		MessageWithSenderCodec<Person> msc =
+				new MessageWithSenderCodec<Person>(codec);
 		
 		Person person = new Person();
 		
@@ -50,8 +50,8 @@ public class MessageWithSenderEncoderDecoderTest {
 		MessageWithSender<Person> ms = new MessageWithSender<Person>(
 				person, "SarahTheSender");
 
-		byte[] b = msed.encode(ms);
-		MessageWithSender<Person> decoded = msed.decode(b);
+		byte[] b = msc.encode(ms);
+		MessageWithSender<Person> decoded = msc.decode(b);
 		assertEquals(ms.sender, decoded.sender);
 		
 		assertEquals(ms.content.name, decoded.content.name);

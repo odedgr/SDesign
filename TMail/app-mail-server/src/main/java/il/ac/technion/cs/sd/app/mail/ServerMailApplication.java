@@ -33,12 +33,7 @@ public class ServerMailApplication {
 			throw new InvalidParameterException("Server name cannot be null or empty");
 		}
 		
-		try {
-			sConn = ServerConnection.create(name);
-		} catch (MessengerException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+		sConn = ServerConnection.create(name);
 		myAddress = name;
 	
 		throw new UnsupportedOperationException("Not implemented");
