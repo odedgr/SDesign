@@ -23,25 +23,39 @@ import il.ac.technion.cs.sd.msg.MessengerFactory;
  * 
  * 
  */
-public class ClientConnection<T extends Serializable> {
+public class ClientConnection<Message> {
 	
 	final private Messenger messenger;
 	final private String serverAddress;
+	final private Codec<Message> codec;
 	
-	public static <T extends Serializable> ClientConnection<T> create(String clientAddress, String serverAddress) throws MessengerException {
-		Messenger messanger = new MessengerFactory().start(clientAddress);
-		return new ClientConnection<T>(serverAddress, messanger);
+	public static <Message extends Serializable> ClientConnection<Message> create(
+			String clientAddress, String serverAddress) {
+		Messenger messanger;
+		try {
+			messanger = new MessengerFactory().start(clientAddress);
+			return new ClientConnection<Message>(serverAddress, messanger,
+					new SerializeCodec<Message>());
+		} catch (MessengerException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
-	// TODO maybe need to save state (active / inactive)?
-	public void kill() throws MessengerException {
-		messenger.kill();
-		
+	public static <Message> ClientConnection<Message> Message(
+			String clientAddress, String serverAddress, Codec<Message> codec) {
+		Messenger messenger;
+		try {
+			messenger = new MessengerFactory().start(clientAddress);
+			return new ClientConnection<Message>(serverAddress, messenger, codec);
+		} catch (MessengerException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
-	public ClientConnection(String serverAddress, Messenger messenger) {
+	public ClientConnection(String serverAddress, Messenger messenger, Codec<Message> codec) {
 		this.serverAddress = serverAddress;
 		this.messenger = messenger;
+		this.codec = codec;
 	}
 	
 	public String address() {
@@ -52,104 +66,41 @@ public class ClientConnection<T extends Serializable> {
 		return serverAddress;
 	}
 	
-	// TODO: handle/ignore exceptions according to staff orders
-	public void send(T msg) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		ObjectOutputStream oos = null;
+	public void send(Message msg) {
 		try {
-			oos = new ObjectOutputStream(bos);
-			oos.writeObject(msg);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try {
-			messenger.send(serverAddress, wrapWithMyAddress(bos.toByteArray()));
+			MessageWithSender<Message> mws = new MessageWithSender<Message>(
+					msg, address());
+			messenger.send(serverAddress, new MessageWithSenderCodec<Message>(
+					codec).encode(mws));
 		} catch (MessengerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 	
-	
-	// TODO method with Charset parameter might not be necessary. maybe only system default is enough.
-	/**
-	 * Wrap a byte[] representing an object to be sent, with this client's address byte representation, using a specific Charset.
-	 * 
-	 * @param objBytes The byte[] to be wrapped with this client's address.
-	 * @param charset The Charset to be used for encoding the address String.
-	 * @return byte[] including this client's address and the serialized (encoded) object.
-	 */
-	private byte[] wrapWithMyAddress(byte[] objBytes, Charset charset) {
-		byte[] addressBytes = messenger.getAddress().getBytes(charset);
-		int addressSizeInBytes = addressBytes.length;
-		
-		ByteBuffer buff = ByteBuffer.allocate(Integer.BYTES + addressSizeInBytes + objBytes.length);
-		buff.putInt(addressSizeInBytes)
-			.put(addressBytes)
-			.put(objBytes);
-		
-		return buff.array();
-	}
-	
-	/**
-	 * Wrap a byte[] representing an object to be sent, with this client's address byte representation.
-	 * 
-	 * The clients address, represented as a String object, is encoded using the system's default Charset encoding.
-	 * 
-	 * @param objBytes The byte[] to be wrapped with this client's address.
-	 * @return byte[] including this client's address and the serialized (encoded) object.
-	 */
-	private byte[] wrapWithMyAddress(byte[] objBytes) {
-		return wrapWithMyAddress(objBytes, Charset.defaultCharset());
-	}
-	
-	public Optional<T> receiveSingle() {
-		Optional<byte[]> bytes;
+	public Optional<Message> receiveSingle() {
 		try {
-			bytes = messenger.tryListen();
+			Optional<byte[]> bytes = messenger.tryListen();
 			if (!bytes.isPresent()) {
 				return Optional.empty();
 			}
-			ByteArrayInputStream bis = new ByteArrayInputStream(bytes.get());
-			ObjectInputStream ois;
-			ois = new ObjectInputStream(bis);
-			
-			@SuppressWarnings("unchecked")
-			Optional<T> retVal = (Optional<T>) Optional.of(ois.readObject());
-			return retVal;
-		} catch (MessengerException | ClassNotFoundException | IOException e) {
-			// TODO - What to do in case of failure?!
-			e.printStackTrace();
+			return Optional.of(codec.decode(bytes.get()));
+		} catch (MessengerException e) {
+			throw new RuntimeException(e);
 		}
-		return Optional.empty();
 	}
 
-	public T receiveSingleBlocking() {
-		byte[] bytes;
+	public Message receiveSingleBlocking() {
 		try {
-			bytes = messenger.listen();
-			ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-			ObjectInputStream ois;
-			ois = new ObjectInputStream(bis);
-			
-			@SuppressWarnings("unchecked")
-			T retVal = (T)ois.readObject();
-			return retVal;
-		} catch (MessengerException | ClassNotFoundException | IOException e) {
-			// TODO - What to do in case of failure?!
-			e.printStackTrace();
+			byte[] bytes = messenger.listen();
+			return codec.decode(bytes);
+		} catch (MessengerException e) {
+			throw new RuntimeException(e);
 		}
-		System.out.println("SHOULD NEVER HAPPEN! null returned from receiveSingleBlocking");
-		return null; // TODO: can not happen? if can happen, deal with it differently and NOT return null.
 	}
 	
-	public List<T> getAllMessages(int limit) {
-		return null;
+	public void kill() throws MessengerException {
+		messenger.kill();
 	}
-	
-	// TODO: maybe implement a method of receiving multiple of a message.
-	
-	
 }
 
 
