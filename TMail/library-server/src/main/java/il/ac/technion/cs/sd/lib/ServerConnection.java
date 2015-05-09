@@ -1,22 +1,12 @@
 package il.ac.technion.cs.sd.lib;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.util.List;
 import java.util.Optional;
 
 import il.ac.technion.cs.sd.msg.Messenger;
 import il.ac.technion.cs.sd.msg.MessengerException;
 import il.ac.technion.cs.sd.msg.MessengerFactory;
 
-// TODO: pick a better name that T?
-// TODO: Wrap all the serlilize and conversion in a a common class or utility func.
 // TODO: javadoc.
 // TODO: test?
 
@@ -24,24 +14,39 @@ import il.ac.technion.cs.sd.msg.MessengerFactory;
  * 
  * 
  */
-public class ServerConnection<T extends Serializable> {
+public class ServerConnection<Message> {
 	
-	private Messenger messenger; // cannot be final, because uopn stop/start new ones are created, and can't be revived
-	final private String myAddress;
+	private Messenger messenger;
+	private Codec<Message> codec;
+	final private String address;
 	
-	public static <T extends Serializable> ServerConnection<T> create(String address) throws MessengerException {
-		return new ServerConnection<T>(address);
+	public static <Message extends Serializable> ServerConnection<Message> create(String address) {
+		return create(address, new SerializeCodec<Message>());
 	}
 	
-	public boolean isActive() {
-		return (null != messenger);
+	public static <Message> ServerConnection<Message> create(String address, Codec<Message> codec) {
+		try {
+			Messenger messenger = new MessengerFactory().start(address);
+			return new ServerConnection<Message>(address, codec, messenger);
+		} catch (MessengerException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private ServerConnection(String address, Codec<Message> codec, Messenger messenger) {
+		this.address = address;
+		this.codec = codec;
+		this.messenger = messenger;
+	}
+	
+	public void verifyNotStopped() {
+		if (messenger == null) {
+			throw new RuntimeException("Error: Connection is stopped.");
+		}
 	}
 	
 	public void stop() {
-		if (!isActive()) {
-			return;
-		}
-		
+		verifyNotStopped();
 		try {
 			messenger.kill();
 		} catch (MessengerException e) {
@@ -50,24 +55,6 @@ public class ServerConnection<T extends Serializable> {
 		} finally {
 			messenger = null;
 		}
-		
-	}
-	
-	public void start() {
-		if (isActive()) { 
-			return;
-		}
-		
-		try {
-			this.messenger = new MessengerFactory().start(myAddress);
-		} catch (MessengerException e) {
-			e.printStackTrace();
-			throw new RuntimeException();
-		}
-	}
-	
-	private ServerConnection(String address) {
-		this.myAddress = address;
 	}
 	
 	/**
@@ -76,125 +63,38 @@ public class ServerConnection<T extends Serializable> {
 	 * @return Address of this server connection.
 	 */
 	public String address() {
-		return this.myAddress;
+		return this.address;
 	}
 	
-	// TODO: handle/ignore exceptions according to staff orders
-	// TODO add check if connection is active or not
-	public void send(String clientAddress, T msg) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		ObjectOutputStream oos = null;
+	public void send(String clientAddress, Message message) {
 		try {
-			oos = new ObjectOutputStream(bos);
-			oos.writeObject(msg);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		try {
-			messenger.send(clientAddress, bos.toByteArray());
+			messenger.send(clientAddress, codec.encode(message));
 		} catch (MessengerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 	
-	public Optional<T> receiveSingle() {
-		// TODO change return type, so both the object and the clients source address ('from') is returned.
-		// TODO add check if connection is active or not
-		Optional<byte[]> bytes;
+	public Optional<MessageWithSender<Message>> receive() {
 		try {
-			bytes = messenger.tryListen();
+			Optional<byte[]> bytes = messenger.tryListen();
 			if (!bytes.isPresent()) {
 				return Optional.empty();
 			}
-
-			ByteBuffer buff = ByteBuffer.wrap(bytes.get());
+			return Optional.of(new MessageWithSenderCodec<Message>(codec)
+					.decode(bytes.get()));
 			
-			String from = extractClientAddress(buff);
-			byte[] msgBytes = extractPayload(buff, from.getBytes().length);
-			
-			ByteArrayInputStream bis = new ByteArrayInputStream(msgBytes);
-			ObjectInputStream ois = new ObjectInputStream(bis);
-			
-			return (Optional<T>) ois.readObject(); // TODO: shouldn't the cast be to T, and only then wrap with Optional?
-		} catch (MessengerException | ClassNotFoundException | IOException e) {
-			// TODO - What to do in case of failure?!
-			e.printStackTrace();
+		} catch (MessengerException e) {
+			throw new RuntimeException(e);
 		}
-		return Optional.empty();
 	}
 
-	/**
-	 * Extract raw bytes (byte[]) of serialized object from raw received message.
-	 * 
-	 * @param buff ByteBuffer wrapping the raw byte[] as received from messenger.
-	 * @param offset Start point in the byte[] in the ByteBuffer, from which to extract the object's byte[]
-	 * @return byte[] containing only the original serialized (encoded) Object.
-	 */
-	private byte[] extractPayload(ByteBuffer buff, int offset) {
-		
-		int metadataSize = offset + Integer.BYTES;
-		
-		byte[] bytes = new byte[buff.capacity() - metadataSize];
-		buff.get(bytes, metadataSize, bytes.length);
-		
-		return buff.array();
-	}
-
-	/**
-	 * Re-build the client's address as a String object from raw message, using the system's default Charset.
-	 * 
-	 * @param buff ByteBuffer object wrapped around the raw byte[] of received message.
-	 * @return String object representing the sending client's address.
-	 */
-	private String extractClientAddress(ByteBuffer buff) {
-		return extractClientAddress(buff, Charset.defaultCharset());
-	}
-	
-	// TODO method with specific charset might not be necessary, maybe only system's default encoding is needed
-	/**
-	 * Re-build the client's address as a String object from raw message, using a specific Charset.
-	 * 
-	 * @param buff ByteBuffer object wrapped around the raw byte[] of received message.
-	 * @param charset Charset to be used for decoding bytes into a String object.
-	 * @return String object representing the sending client's address.
-	 */
-	private String extractClientAddress(ByteBuffer buff, Charset charset) {
-		int addressSizeInBytes = buff.getInt(0);
-		byte[] addressBytes = new byte[addressSizeInBytes]; 
-		
-		buff.get(/* output destination */    addressBytes, 
-				 /* offset in byte buffer */ Integer.BYTES, 
-				 /* amount of bytes */       addressSizeInBytes);
-		
-		return new String(addressBytes, charset);
-	}
-
-	public T receiveSingleBlocking() {
-		// TODO add check if connection is active or not
-		// TODO change return type so it contains both the object and the source client's address ('from')
-		byte[] bytes;
+	public Message receiveBlocking() {
 		try {
-			bytes = messenger.listen();
-			
-			ByteBuffer buff = ByteBuffer.wrap(bytes);
-			
-			String from = extractClientAddress(buff);
-			byte[] msgBytes = extractPayload(buff, from.getBytes().length);
-
-			ByteArrayInputStream bis = new ByteArrayInputStream(msgBytes);
-			ObjectInputStream ois;
-			ois = new ObjectInputStream(bis);
-			return (T)ois.readObject();
-		} catch (MessengerException | ClassNotFoundException | IOException e) {
-			// TODO - What to do in case of failure?!
-			e.printStackTrace();
+			return codec.decode(messenger.listen());
+		} catch (MessengerException e) {
+			throw new RuntimeException(e);
 		}
-		System.out.println("SHOULD NEVER HAPPEN! null returned from receiveSingleBlocking");
-		return null; // TODO: can not happen? if can happen, deal with it differently and NOT return null.
 	}
-	
 }
 
 
