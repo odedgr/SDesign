@@ -11,7 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TMailTest {
-	private ServerMailApplication		server	= new ServerMailApplication();
+	private ServerMailApplication		server	= new ServerMailApplication("server");
 	private List<ClientMailApplication>	clients	= new ArrayList<>();
 	
 	private ClientMailApplication buildClient(String login) {
