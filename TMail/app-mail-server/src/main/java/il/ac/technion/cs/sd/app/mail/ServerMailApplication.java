@@ -20,7 +20,7 @@ public class ServerMailApplication {
 	private ServerConnection<Envelope> sConn = null;
 
 	// loaded / stored to independent db
-	private Map<String, ClientMailBox> mailboxes = new HashMap<String, ClientMailBox>();
+	private Map<String, MailBox> mailboxes = new HashMap<String, MailBox>();
 	
 	/**
 	 * Starts a new mail server. Servers with the same name retain all their information until
@@ -75,7 +75,7 @@ public class ServerMailApplication {
 	 * run on a new, clean server. you may assume the server is stopped before this method is called.
 	 */
 	public void clean() {
-		mailboxes = new HashMap<String, ClientMailBox>();
+		mailboxes = new HashMap<String, MailBox>();
 		// TODO should sConn also be reset?
 		// TODO should the state change?
 	}
@@ -83,40 +83,38 @@ public class ServerMailApplication {
 		////////////////
 	
 	private void addNewMail(Mail mail) {
-		MailEntry entry = new MailEntry(mail);
-		
 		String sender = mail.from;
 		String receiver = mail.to;
 		
-		ClientMailBox senderBox = mailboxes.get(sender);
-		ClientMailBox receiverBox = mailboxes.get(receiver);
+		MailBox senderBox = mailboxes.get(sender);
+		MailBox receiverBox = mailboxes.get(receiver);
 		
-		senderBox.sentMailEntry(entry);
-		receiverBox.receivedMailEntry(entry);
+		senderBox.sentMail(mail);
+		receiverBox.receivedMail(mail);
 	}
 	
 	private List<Mail> getCorrespondencesBetween(String requester, String otherClient, int howMany) {
-		ClientMailBox mailbox = mailboxes.get(requester);
+		MailBox mailbox = mailboxes.get(requester);
 		return mailbox.getCorrespondeceWith(otherClient, howMany);
 	}
 	
 	private List<Mail> getSentMailOfClient(String client, int howMany) {
-		ClientMailBox mailbox = mailboxes.get(client);
+		MailBox mailbox = mailboxes.get(client);
 		return mailbox.getLastNSent(howMany);
 	}
 	
 	private List<Mail> getIncomingMailOfClient(String client, int howMany) {
-		ClientMailBox mailbox = mailboxes.get(client);
+		MailBox mailbox = mailboxes.get(client);
 		return mailbox.getLastNReceived(howMany);
 	}
 	
 	private List<Mail> getAllMailOfClient(String client, int howMany) {
-		ClientMailBox mailbox = mailboxes.get(client);
+		MailBox mailbox = mailboxes.get(client);
 		return mailbox.getLastNMails(howMany);
 	}
 	
 	private List<Mail> getUnreadMailOfClient(String client) {
-		ClientMailBox mailbox = mailboxes.get(client);
+		MailBox mailbox = mailboxes.get(client);
 		return mailbox.getUnread();
 	}
 	
