@@ -96,8 +96,8 @@ public class ServerMailApplication {
 		ClientMailBox senderBox = mailboxes.get(sender);
 		ClientMailBox receiverBox = mailboxes.get(receiver);
 		
-		senderBox.addSentMailEntry(entry);
-		receiverBox.addReceivedMailEntry(entry);
+		senderBox.sentMailEntry(entry);
+		receiverBox.receivedMailEntry(entry);
 	}
 	
 	private List<Mail> getCorrespondencesBetween(String requester, String otherClient, int howMany) {

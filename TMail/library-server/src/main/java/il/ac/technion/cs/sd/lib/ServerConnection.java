@@ -80,6 +80,7 @@ public class ServerConnection<T extends Serializable> {
 	}
 	
 	// TODO: handle/ignore exceptions according to staff orders
+	// TODO add check if connection is active or not
 	public void send(String clientAddress, T msg) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		ObjectOutputStream oos = null;
@@ -100,6 +101,7 @@ public class ServerConnection<T extends Serializable> {
 	
 	public Optional<T> receiveSingle() {
 		// TODO change return type, so both the object and the clients source address ('from') is returned.
+		// TODO add check if connection is active or not
 		Optional<byte[]> bytes;
 		try {
 			bytes = messenger.tryListen();
@@ -170,6 +172,7 @@ public class ServerConnection<T extends Serializable> {
 	}
 
 	public T receiveSingleBlocking() {
+		// TODO add check if connection is active or not
 		// TODO change return type so it contains both the object and the source client's address ('from')
 		byte[] bytes;
 		try {
@@ -191,13 +194,6 @@ public class ServerConnection<T extends Serializable> {
 		System.out.println("SHOULD NEVER HAPPEN! null returned from receiveSingleBlocking");
 		return null; // TODO: can not happen? if can happen, deal with it differently and NOT return null.
 	}
-	
-	public List<T> getAllMessages(int limit) {
-		return null;
-	}
-	
-	// TODO: maybe implement a method of receiving multiple of a message.
-	
 	
 }
 
