@@ -23,7 +23,7 @@ public class ClientMailBox {
 	 * 
 	 * @param me MailEntry object containing the mail item this client sent.
 	 */
-	public void addSentMailEntry(MailEntry me) {
+	public void sentMailEntry(MailEntry me) {
 		this.sent.add(me);
 		addToCorrespondenceWith(me, me.to());
 	}
@@ -48,7 +48,7 @@ public class ClientMailBox {
 	 * 
 	 * @param me MailEntry object containing the mail item this client received.
 	 */
-	public void addReceivedMailEntry(MailEntry me) {
+	public void receivedMailEntry(MailEntry me) {
 		this.inbox.add(me);
 		this.unread.put(me.time(), me);
 		addToCorrespondenceWith(me, me.from());
@@ -60,7 +60,7 @@ public class ClientMailBox {
 	 * 
 	 * @param me MailEntry to be marked.
 	 */
-	public void readMailEntry(MailEntry me) {
+	private void readMailEntry(MailEntry me) {
 		this.unread.remove(me.time());
 	}
 	
@@ -172,16 +172,21 @@ public class ClientMailBox {
 	 */
 	public List<Mail> getCorrespondeceWith(String otherClient, int howMany) {
 		List<MailEntry> allMail = this.correspondece.get(otherClient);
+		
+		if (null == allMail) {
+			return new ArrayList<Mail>();
+		}
+		
 		int topLimit = allMail.size();
 		
 		if (howMany > topLimit) {
 			howMany = topLimit;
 		}
 		
-		this.correspondece.get(otherClient).subList(topLimit - howMany, topLimit);
-		
-		// TODO Auto-generated method stub
-		return null;
+		return this.correspondece.get(otherClient).subList(topLimit - howMany, topLimit)
+				.stream()
+				.map(entry ->entry.mail())
+				.collect(Collectors.toCollection(ArrayList::new));
 	}
 	
 	/**
