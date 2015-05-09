@@ -26,24 +26,53 @@ import il.ac.technion.cs.sd.msg.MessengerFactory;
  */
 public class ServerConnection<T extends Serializable> {
 	
-	final private Messenger messenger;
+	private Messenger messenger; // cannot be final, because uopn stop/start new ones are created, and can't be revived
+	final private String myAddress;
 	
 	public static <T extends Serializable> ServerConnection<T> create(String address) throws MessengerException {
-		Messenger messanger = new MessengerFactory().start(address);
-		return new ServerConnection<T>(messanger);
+		return new ServerConnection<T>(address);
 	}
 	
-	// TODO maybe need to save state (active / inactive)?
-	public void kill() throws MessengerException {
-		messenger.kill();
+	public void stop() {
+		if (null == this.messenger) {  // already stopped
+			return;
+		}
+		
+		try {
+			messenger.kill();
+		} catch (MessengerException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		} finally {
+			messenger = null;
+		}
+		
 	}
 	
-	private ServerConnection(Messenger messenger) {
-		this.messenger = messenger;
+	public void start() {
+		if (null != this.messenger) { // already started - no need to start again
+			return;
+		}
+		
+		try {
+			this.messenger = new MessengerFactory().start(myAddress);
+		} catch (MessengerException e) {
+			e.printStackTrace();
+			throw new RuntimeException();
+		}
 	}
 	
+	private ServerConnection(String address) {
+		this.myAddress = address;
+	}
+	
+	/**
+	 * Get this ServerConnection instance address.
+	 * 
+	 * @return Address of this server connection.
+	 */
 	public String address() {
-		return messenger.getAddress();
+		return this.myAddress;
 	}
 	
 	// TODO: handle/ignore exceptions according to staff orders
