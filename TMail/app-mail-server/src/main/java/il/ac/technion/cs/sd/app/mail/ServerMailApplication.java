@@ -1,10 +1,12 @@
 package il.ac.technion.cs.sd.app.mail;
 
-import java.time.LocalDateTime;
+import il.ac.technion.cs.sd.lib.ServerConnection;
+import il.ac.technion.cs.sd.msg.MessengerException;
+
+import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * The server side of the TMail application. <br>
@@ -14,53 +16,61 @@ public class ServerMailApplication {
 	
 	// instance variables
 	private String myAddress = null;
+	private boolean active = false;
+	private ServerConnection<Envelope> sConn = null;
 
 	// loaded / stored to independent db
-	private Map<String, List<Envelope>> mailBySender = new HashMap<String, List<Envelope>>();
-	private Map<String, List<Envelope>> mailByReceiver = new HashMap<String, List<Envelope>>();
-	
-
-	// instance methods
-	private boolean active = false;
+	private Map<String, ClientMailBox> mailboxes = new HashMap<String, ClientMailBox>();
 	
 	/**
-	 * Starts a new web server with an arbitrary name. If you want to generate a random name, look at
-	 * {@link UUID#randomUUID()}.
+	 * Starts a new mail server. Servers with the same name retain all their information until
+	 * {@link ServerMailApplication#clean()} is called.
+	 * 
+	 * @param name The name of the server by which it is known.
 	 */
-	public ServerMailApplication() {
-//		myAddress = ....
-		loadDb();
+	public ServerMailApplication(String name) {
+		if (null == name || name.equals("")) {
+			throw new InvalidParameterException("Server name cannot be null or empty");
+		}
+		
+		try {
+			sConn = ServerConnection.create(name);
+		} catch (MessengerException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+		myAddress = name;
+	
 		throw new UnsupportedOperationException("Not implemented");
 	}
 	
-
 	/**
 	 * @return the server's address; this address will be used by clients connecting to the server
 	 */
 	public String getAddress() {
-		throw new UnsupportedOperationException("Not implemented");
+		return sConn.address();
 	}
 	
 	/**
-	 * Starts the server; any previously sent mails, data and indices are loaded
+	 * Starts the server; any previously sent mails, data and indices under this server name are loaded. It is possible
+	 * to start a new server instance in same, or another process. You may assume that two server instances with the
+	 * same name won't be in parallel. Similarly, {@link ServerMailApplication#stop()} will be called before subsequent
+	 * calls to {@link ServerMailApplication#start()}.
 	 */
 	public void start() {
-		
-		
+		loadDb();
+		sConn.start();
 		this.active = true;
-		throw new UnsupportedOperationException("Not implemented");
 	}
 	
 	/**
-	 * Stops the server. A stopped server can't accept mail, but doesn't delete any data.
-	 * A stopped server does not use any system resources (e.g., messengers).
+	 * Stops the server. A stopped server can't accept mail, but doesn't delete any data. A stopped server does not use
+	 * any system resources (e.g., messengers).
 	 */
 	public void stop() {
-		
-		this.active = false;
 		saveDb();
-		
-		throw new UnsupportedOperationException("Not implemented");
+		this.active = false;
+		sConn.stop();
 	}
 	
 	/**
@@ -68,47 +78,41 @@ public class ServerMailApplication {
 	 * run on a new, clean server. you may assume the server is stopped before this method is called.
 	 */
 	public void clean() {
-		throw new UnsupportedOperationException("Not implemented");
+		mailboxes = new HashMap<String, ClientMailBox>();
+		// TODO should sConn also be reset?
+		// TODO shoud the state change?
 	}
 	
-	
-	////////////////
+		////////////////
 	
 	private void addNewMail(Mail mail) {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException("Not implemented");
 	}
 	
-	private List<Mail> getMailOfSender(String sender, int howMany) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Not implemented");
-//		List<Mail> list = new ArrayList<Mail>();
-//		
-//		return list
+	private List<Mail> getCorrespondencesBetween(String requester, String otherClient, int howMany) {
+		ClientMailBox mailbox = mailboxes.get(requester);
+		return mailbox.getCorrespondeceWith(otherClient, howMany);
 	}
 	
-	private List<Mail> getMailOfReceiver(String receiver, int howMany) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Not implemented");
-//		List<Mail> list = new ArrayList<Mail>();
-//		
-//		return list
+	private List<Mail> getSentMailOfClient(String client, int howMany) {
+		ClientMailBox mailbox = mailboxes.get(client);
+		return mailbox.getLastNSent(howMany);
+	}
+	
+	private List<Mail> getIncomingMailOfClient(String client, int howMany) {
+		ClientMailBox mailbox = mailboxes.get(client);
+		return mailbox.getLastNReceived(howMany);
 	}
 	
 	private List<Mail> getAllMailOfClient(String client, int howMany) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Not implemented");
-//		List<Mail> list = new ArrayList<Mail>();
-//		
-//		return list
+		ClientMailBox mailbox = mailboxes.get(client);
+		return mailbox.getLastNMails(howMany);
 	}
 	
-	private List<Mail> getUnreadMailOfClient(String client, int howMany) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Not implemented");
-//		List<Mail> list = new ArrayList<Mail>();
-//		
-//		return list
+	private List<Mail> getUnreadMailOfClient(String client) {
+		ClientMailBox mailbox = mailboxes.get(client);
+		return mailbox.getUnread();
 	}
 	
 
@@ -122,24 +126,4 @@ public class ServerMailApplication {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 	
-	
-	private class Envelope {
-		private Mail msg;
-		private LocalDateTime arrivalTime;
-		private boolean opened = false;
-		
-		Envelope(Mail mail) {
-			msg = mail;
-			opened = false;
-			arrivalTime = LocalDateTime.now();
-		}
-		
-		public void markRead() {
-			opened = true;
-		}
-		
-		public boolean wasRead() {
-			return opened;
-		}
-	}
 }
