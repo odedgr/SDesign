@@ -16,8 +16,8 @@ import il.ac.technion.cs.sd.msg.MessengerFactory;
  */
 public class ServerConnection<Message> {
 	
-	private Messenger messenger;
-	private Codec<Message> codec;
+	final private Messenger messenger;
+	final private Codec<Message> codec;
 	final private String address;
 	
 	public static <Message extends Serializable> ServerConnection<Message> create(String address) {
@@ -39,21 +39,12 @@ public class ServerConnection<Message> {
 		this.messenger = messenger;
 	}
 	
-	public void verifyNotStopped() {
-		if (messenger == null) {
-			throw new RuntimeException("Error: Connection is stopped.");
-		}
-	}
-	
 	public void stop() {
-		verifyNotStopped();
 		try {
 			messenger.kill();
 		} catch (MessengerException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
-		} finally {
-			messenger = null;
 		}
 	}
 	
