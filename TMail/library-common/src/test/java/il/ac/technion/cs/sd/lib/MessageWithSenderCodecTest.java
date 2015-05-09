@@ -37,21 +37,21 @@ public class MessageWithSenderCodecTest {
 	
 	@Test
 	public void CheckSerializableClassEncodedAndDecodedProperly() {
-		Codec<Person> codec = new SerializeCodec<Person>();
-		MessageWithSenderCodec<Person> msc =
-				new MessageWithSenderCodec<Person>(codec);
+		Codec<AuxClass> codec = new SerializeCodec<AuxClass>();
+		MessageWithSenderCodec<AuxClass> msc =
+				new MessageWithSenderCodec<AuxClass>(codec);
 		
-		Person person = new Person();
+		AuxClass person = new AuxClass();
 		
 		person.name = "Moshe";
 		person.age = 30;
 		person.height = 1.83;
 		
-		MessageWithSender<Person> ms = new MessageWithSender<Person>(
+		MessageWithSender<AuxClass> ms = new MessageWithSender<AuxClass>(
 				person, "SarahTheSender");
 
 		byte[] b = msc.encode(ms);
-		MessageWithSender<Person> decoded = msc.decode(b);
+		MessageWithSender<AuxClass> decoded = msc.decode(b);
 		assertEquals(ms.sender, decoded.sender);
 		
 		assertEquals(ms.content.name, decoded.content.name);

@@ -8,8 +8,8 @@ public class MessageWithSenderCodec<Message> implements
 
 	final private Codec<Message> messageCodec;
 	
-	MessageWithSenderCodec(Codec<Message> med) {
-		messageCodec = med;
+	MessageWithSenderCodec(Codec<Message> mc) {
+		messageCodec = mc;
 	}
 	
 	@Override
@@ -17,7 +17,7 @@ public class MessageWithSenderCodec<Message> implements
 		// Encoding:
 		// 1. Sender address string size
 		// 2. Sender address string as raw bytes
-		// 3. Message context, serialized with the given EncoderDecoder.
+		// 3. Message context, serialized with the given codec.
 		
 		byte[] messageBytes = messageCodec.encode(message.content);
 		byte[] senderBytes = message.sender.getBytes(Charset.defaultCharset());
@@ -41,9 +41,8 @@ public class MessageWithSenderCodec<Message> implements
 		buff.get(senderBytes);
 		
 		// Extract content.
-//		final int contentOffset = Integer.BYTES + senderBytes.length;
-		buff.position(Integer.BYTES + senderBytes.length);
 		byte[] contentBytes = new byte[buff.remaining()]; 
+		buff.position(Integer.BYTES + senderBytes.length);
 		buff.get(contentBytes);
 		
 		return new MessageWithSender<Message>(
