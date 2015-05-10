@@ -20,7 +20,7 @@ public class MessageWithSenderCodec<Message> implements
 		// 3. Message context, serialized with the given codec.
 		
 		byte[] messageBytes = messageCodec.encode(message.content);
-		byte[] senderBytes = message.sender.getBytes(Charset.defaultCharset());
+		byte[] senderBytes = message.sender.getBytes();
 		
 		ByteBuffer buff = ByteBuffer.allocate(Integer.BYTES
 				+ senderBytes.length + messageBytes.length);
@@ -46,8 +46,7 @@ public class MessageWithSenderCodec<Message> implements
 		buff.get(contentBytes);
 		
 		return new MessageWithSender<Message>(
-				messageCodec.decode(contentBytes),
-				new String(senderBytes, Charset.defaultCharset()));
+				messageCodec.decode(contentBytes), new String(senderBytes));
 	}
 
 }

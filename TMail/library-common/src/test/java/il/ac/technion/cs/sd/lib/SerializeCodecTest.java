@@ -24,18 +24,12 @@ public class SerializeCodecTest {
 	
 	@Test
 	public void CheckSerializableClassEncodedAndDecodedProperly() {
-		AuxClass person = new AuxClass();
+		AuxMsg msg = AuxMsg.msg1();
 		
-		person.name = "Moshe";
-		person.age = 30;
-		person.height = 1.83;
-		
-		Codec<AuxClass> codec = new SerializeCodec<AuxClass>();
-		byte[] b = codec.encode(person);
-		AuxClass decodedPerson = codec.decode(b);
-		assertEquals(person.name, decodedPerson.name);
-		assertEquals(person.age, decodedPerson.age);
-		assertEquals(person.height, decodedPerson.height, 0.001);
+		Codec<AuxMsg> codec = new SerializeCodec<AuxMsg>();
+		byte[] b = codec.encode(msg);
+		AuxMsg decodedMsg = codec.decode(b);
+		assertEquals(msg, decodedMsg);
 	}
 
 }
