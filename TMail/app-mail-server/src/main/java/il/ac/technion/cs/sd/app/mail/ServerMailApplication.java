@@ -10,7 +10,7 @@ import java.util.Map;
 
 /**
  * The server side of the TMail application. <br>
- * This class is mainly used in our tests to start, stop, and clean the server
+ * This class is mainly used in our tests to start, stop, and clean the server.
  */
 public class ServerMailApplication {
 	
@@ -20,7 +20,7 @@ public class ServerMailApplication {
 	private ServerConnection<Envelope> sConn = null;
 
 	// loaded / stored to independent db
-	private Map<String, MailBox> mailboxes = new HashMap<String, MailBox>();
+	private Map<String, MailBox> mailboxes = new HashMap<String, MailBox>(); // <client address : client mailbox>
 	
 	/**
 	 * Starts a new mail server. Servers with the same name retain all their information until
@@ -82,6 +82,12 @@ public class ServerMailApplication {
 	
 		////////////////
 	
+	/**
+	 * Add a new mail item, sent from one client to another, via this server.
+	 * Updates both clients' mailboxes.
+	 * 
+	 * @param mail Mail item that was sent.
+	 */
 	private void addNewMail(Mail mail) {
 		String sender = mail.from;
 		String receiver = mail.to;
@@ -93,37 +99,77 @@ public class ServerMailApplication {
 		receiverBox.receivedMail(mail);
 	}
 	
+	/**
+	 * Retrieve at most howMany most recent mails from the complete correspondence between two clients.
+	 * 
+	 * @param requester - Address of the client requesting the correspondence.
+	 * @param otherClient - Address of client with whom correspondence was asked for by the requester.
+	 * @param howMany - Maximal amount of mail items to be returned.
+	 * @return List of at most howMany, most recent mail items, in the correspondence between the two clients, ordered from newest to oldest.
+	 */
 	private List<Mail> getCorrespondencesBetween(String requester, String otherClient, int howMany) {
 		MailBox mailbox = mailboxes.get(requester);
 		return mailbox.getCorrespondeceWith(otherClient, howMany);
 	}
 	
+	/**
+	 * Retrieve at most howMany of the most recent mail items a given client has sent.
+	 * 
+	 * @param client - Address of sending client
+	 * @param howMany - Maximal amount of mail items to return.
+	 * @return List of at most howMany, most recent mail items, the client has sent, ordered from newest to oldest.
+	 */
 	private List<Mail> getSentMailOfClient(String client, int howMany) {
 		MailBox mailbox = mailboxes.get(client);
 		return mailbox.getLastNSent(howMany);
 	}
 	
+	/**
+	 * Retrieve at most howMany of the most recent mail items a given client has received.
+	 * 
+	 * @param client - Address of the receiving client.
+	 * @param howMany - Maximal amount of mail items to return.
+	 * @return List of at most howMany, most recent mail items, the client has received, ordered from newest to oldest.
+	 */
 	private List<Mail> getIncomingMailOfClient(String client, int howMany) {
 		MailBox mailbox = mailboxes.get(client);
 		return mailbox.getLastNReceived(howMany);
 	}
 	
+	/**
+	 * Retrieve at most howMany of the most recent mail items a given client has either sent or received.
+	 * 
+	 * @param client - Address of client whose mails are queried.
+	 * @param howMany - Maximal amount of mail items to return.
+	 * @return List of at most howMany, most recent mail items, the client has either sent or received, ordered from newest to oldest.
+	 */
 	private List<Mail> getAllMailOfClient(String client, int howMany) {
 		MailBox mailbox = mailboxes.get(client);
 		return mailbox.getLastNMails(howMany);
 	}
 	
+	/**
+	 * Retrieve all unread mail items of a given client.
+	 * 
+	 * @param client - Address of client of which to get the unread mail.
+	 * @return List of all the unread mail items of the given client.
+	 */
 	private List<Mail> getUnreadMailOfClient(String client) {
 		MailBox mailbox = mailboxes.get(client);
 		return mailbox.getUnread();
 	}
 	
-
+	/**
+	 * Load a previously stored database of mailboxes and their contents into the active server.
+	 */
 	private void loadDb() {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException("Not implemented");
 	}
 	
+	/**
+	 * Store all of this server's current data (mailboxes and their contents) into a file. 
+	 */
 	private void saveDb() {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException("Not implemented");
