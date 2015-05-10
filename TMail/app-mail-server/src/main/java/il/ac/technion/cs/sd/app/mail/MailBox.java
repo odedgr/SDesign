@@ -19,6 +19,62 @@ public class MailBox {
 	Map<String, List<Mail>> correspondece = new HashMap<String, List<Mail>>();
 	
 	/**
+	 * Load a complete mailbox from a previously stored database.
+	 * 
+	 * @param client - This clients address
+	 * @param mails - List of Mail objects this clients mailbox has, by order of sending/receiving.
+	 * @param read - List of boolean markers for each matching Mail index in mails, indicating if it was
+	 * 		already read by the client or not.
+	 */
+	public void loadContentsFromDatabase(String client, List<Mail> mails, List<Boolean> read) {
+		if (null == mails || null == read) {
+			throw new NullPointerException("Received either a null list of mails, or list of read");
+		}
+		
+		if (mails.size() != read.size()) {
+			throw new InvalidParameterException("Lists sizes don't match");
+		}
+		
+		Mail mail;
+		for (int i = 0; i < mails.size(); ++i) {
+			mail = mails.get(i);
+			
+			if (client == mail.from) { // this client sent the mail
+				sentMail(mail);
+				continue;
+			}
+
+			// this client received the mail
+			receivedMail(mail);
+			if (true == read.get(i)) {
+				readMail(mail);
+			}
+		}
+	}
+	
+	/**
+	 * Get this mailbox contents in a fashion for string it to a database. Lists received as arguments
+	 * will be filled with all this mailbox's contents.
+	 * 
+	 * @param mails - OUTPUT: List that will hold all of this clients of Mail objects, by order of sending/receiving.
+	 * @param read - OUTPUT: List of boolean markers that will hold for each matching Mail index in mails, indicating if it was
+	 * 		already read by the client or not.
+	 */
+	public void dumpContentsForDatabase(List<Mail> mails, List<Boolean> read) {
+		if (null == mails || null == read) {
+			throw new NullPointerException("Received either a null list of mails, or list of read");
+		}
+		
+		mails.clear();
+		read.clear();
+		
+		for (Mail mail : all_mail) {
+			mails.add(mail);
+			read.add(unread.containsKey(mail.hashCode()));
+		}
+	}
+	
+	/**
 	 * Add a new mail this client sent a new mail. Updates this client's contact list if needed.
 	 * 
 	 * @param mail The Mail object this client sent.
@@ -50,7 +106,8 @@ public class MailBox {
 	}
 
 	/**
-	 * Add a new mail this client received.  Updates this client's contact list if needed.
+	 * Add a new mail this client received. Updates this client's contact list if needed.
+	 * The received mail is marked as unread until it is returned in some query.
 	 * 
 	 * @param mail Mail object this client received.
 	 */
