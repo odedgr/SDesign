@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -14,6 +15,7 @@
 		<module>app-mail-tests</module>
 		<module>library-common</module>
 		<module>app-mail-common</module>
+		<module>library-tests</module>
 	</modules>
 	<build>
 		<plugins>
@@ -21,9 +23,9 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
-          <descriptors>
-            <descriptor>src/assembly/project.xml</descriptor>
-          </descriptors>
+					<descriptors>
+						<descriptor>src/assembly/project.xml</descriptor>
+					</descriptors>
 					<finalName>TMail-id1-id2</finalName>
 				</configuration>
 				<executions>
@@ -35,7 +37,7 @@
 					</execution>
 				</executions>
 			</plugin>
-    </plugins>
+		</plugins>
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -82,4 +84,3 @@
 		</repository>
 	</repositories>
 </project>
-
