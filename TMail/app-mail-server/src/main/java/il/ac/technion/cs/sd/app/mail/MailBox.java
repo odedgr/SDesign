@@ -10,10 +10,8 @@ import java.util.Map;
 
 /**
  * A Container for all of a single client's mail and information.
- * 
  */
 public class MailBox {
-	
 	Map<Integer, Mail> unread = new LinkedHashMap<Integer, Mail>(); // <mail.hashCode(), mail>
 	List<Mail> all_mail = new ArrayList<Mail>(); // ordered from oldest (start) to newest (end). new mails are appended at the end
 	List<Mail> sent = new ArrayList<Mail>(); // ordered from oldest (start) to newest (end). new mails are appended at the end
@@ -21,9 +19,9 @@ public class MailBox {
 	Map<String, List<Mail>> correspondece = new HashMap<String, List<Mail>>();
 	
 	/**
-	 * Add a new mail entry, when this client sends a new mail. Updates this client's contact list if needed.
+	 * Add a new mail this client sent a new mail. Updates this client's contact list if needed.
 	 * 
-	 * @param mail MailEntry object containing the mail item this client sent.
+	 * @param mail The Mail object this client sent.
 	 */
 	public void sentMail(Mail mail) {
 		this.sent.add(mail);
@@ -32,9 +30,9 @@ public class MailBox {
 	}
 	
 	/**
-	 * Add a MailEntry as a part of a correspondence with another client.
+	 * Add a mail as a part of a correspondence with another client.
 	 * 
-	 * @param mail MailEntry of mail with other client to be added.
+	 * @param mail Mail with other client to be added.
 	 * @param other Address of other client with whom the correspondence took place.
 	 */
 	private void addToCorrespondenceWith(Mail mail, String other) {
@@ -49,13 +47,12 @@ public class MailBox {
 		else { // previous correspondence with other client exists - just add new one
 			list.add(mail);
 		}
-		
 	}
 
 	/**
-	 * Add a new mail entry, when this client receives a new mail.  Updates this client's contact list if needed.
+	 * Add a new mail this client received.  Updates this client's contact list if needed.
 	 * 
-	 * @param mail MailEntry object containing the mail item this client received.
+	 * @param mail Mail object this client received.
 	 */
 	public void receivedMail(Mail mail) {
 		this.inbox.add(mail);
@@ -66,9 +63,9 @@ public class MailBox {
 	}
 	
 	/**
-	 * Mark a MailEntery as read.
+	 * Mark a mail as read.
 	 * 
-	 * @param mail MailEntry to be marked.
+	 * @param mail Mail to be marked.
 	 */
 	private void readMail(Mail mail) {
 		this.unread.remove(mail.hashCode());
@@ -146,7 +143,7 @@ public class MailBox {
 	 * @return List of this client's contacts.
 	 */
 	public List<String> getContacts() {
-		return new ArrayList<String>(this.correspondece.keySet()); // TODO maybe conversion to list is not needed
+		return new ArrayList<String>(this.correspondece.keySet());
 	}
 
 	/**
@@ -174,7 +171,7 @@ public class MailBox {
 	}
 	
 	/**
-	 * Get a list of at most N most recent (last) MailEntry items from a given list of MailEntrys. Does NOT mark as read.
+	 * Get a list of at most N most recent (last) Mail items from a given list of Mail objects. Does NOT mark as read.
 	 * 
 	 * @param howMany - maximal amount of mail items to return.
 	 * @return NEW List of at most N most recent mail entries from the list, ordered from newest to oldest.
@@ -192,4 +189,3 @@ public class MailBox {
 	}
 	
 }
-
