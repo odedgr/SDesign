@@ -1,14 +1,6 @@
 package il.ac.technion.cs.sd.lib;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.util.List;
 import java.util.Optional;
 
 import il.ac.technion.cs.sd.msg.Messenger;
@@ -29,20 +21,11 @@ public class ClientConnection<Message> {
 	final private String serverAddress;
 	final private Codec<Message> codec;
 	
-	public static <Message extends Serializable> ClientConnection<Message> create(
-			String clientAddress, String serverAddress) {
-		Messenger messanger;
-		try {
-			messanger = new MessengerFactory().start(clientAddress);
-			return new ClientConnection<Message>(serverAddress, messanger,
-					new SerializeCodec<Message>());
-		} catch (MessengerException e) {
-			throw new RuntimeException(e);
-		}
+	public static <Message extends Serializable> ClientConnection<Message> create(String clientAddress, String serverAddress) {
+		return create(clientAddress, serverAddress, new SerializeCodec<Message>());
 	}
-	
-	public static <Message> ClientConnection<Message> Message(
-			String clientAddress, String serverAddress, Codec<Message> codec) {
+
+	public static <Message> ClientConnection<Message> create(String clientAddress, String serverAddress, Codec<Message> codec) {
 		Messenger messenger;
 		try {
 			messenger = new MessengerFactory().start(clientAddress);
@@ -52,7 +35,19 @@ public class ClientConnection<Message> {
 		}
 	}
 	
-	public ClientConnection(String serverAddress, Messenger messenger, Codec<Message> codec) {
+	public static <Message extends Serializable> ClientConnection<Message> createWithMockMessenger(String serverAddress, Messenger messenger) {
+		return new ClientConnection<Message>(serverAddress, messenger, new SerializeCodec<Message>());
+	}
+	
+	public static <Message> ClientConnection<Message> createWithMockMessenger(String serverAddress, Messenger messenger, Codec<Message> codec) {
+		return new ClientConnection<Message>(serverAddress, messenger, codec);
+	}
+	
+	private ClientConnection(String serverAddress, Messenger messenger, Codec<Message> codec) {
+		if (serverAddress == null || messenger == null || codec == null) {
+			throw new NullPointerException();
+		}
+		
 		this.serverAddress = serverAddress;
 		this.messenger = messenger;
 		this.codec = codec;
@@ -77,7 +72,7 @@ public class ClientConnection<Message> {
 		}
 	}
 	
-	public Optional<Message> receiveSingle() {
+	public Optional<Message> receive() {
 		try {
 			Optional<byte[]> bytes = messenger.tryListen();
 			if (!bytes.isPresent()) {
@@ -89,7 +84,7 @@ public class ClientConnection<Message> {
 		}
 	}
 
-	public Message receiveSingleBlocking() {
+	public Message receiveBlocking() {
 		try {
 			byte[] bytes = messenger.listen();
 			return codec.decode(bytes);

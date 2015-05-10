@@ -39,7 +39,7 @@ public class ServerConnection<Message> {
 		this.messenger = messenger;
 	}
 	
-	public void stop() {
+	public void kill() {
 		try {
 			messenger.kill();
 		} catch (MessengerException e) {
@@ -79,9 +79,9 @@ public class ServerConnection<Message> {
 		}
 	}
 
-	public Message receiveBlocking() {
+	public MessageWithSender<Message> receiveBlocking() {
 		try {
-			return codec.decode(messenger.listen());
+			return new MessageWithSenderCodec<Message>(codec).decode(messenger.listen());
 		} catch (MessengerException e) {
 			throw new RuntimeException(e);
 		}

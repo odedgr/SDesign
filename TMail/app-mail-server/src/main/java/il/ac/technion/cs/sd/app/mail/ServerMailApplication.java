@@ -67,7 +67,7 @@ public class ServerMailApplication {
 	public void stop() {
 		saveDb();
 		this.active = false;
-		sConn.stop();
+		sConn.kill();
 	}
 	
 	/**
