@@ -241,7 +241,19 @@ public class MailBoxTest {
 		mailbox.getLastNReceived(totalAmount - 2);
 		mailbox.getLastNReceived(totalAmount - 1);
 		Assert.assertNotEquals(0, mailbox.getUnread().size());
+	}
+	
+	@Test
+	public void getCorrespondeceMarksAsUnread() {
+		mailbox.receivedMail(new Mail("one", "me", "bla"));
+		mailbox.receivedMail(new Mail("two", "me", "bla"));
+		mailbox.receivedMail(new Mail("one", "me", "bla"));
+		mailbox.receivedMail(new Mail("three", "me", "bla"));
 		
+		assertEquals("received two messages from \"one\"", 2 ,mailbox.getCorrespondeceWith("one", 2).size());
+		assertEquals("should only get the mail from \"three\"", 1, mailbox.getLastNMails(1).size());
+		assertEquals("one the single mail from \"two\" should remain", 1, mailbox.getUnread().size());
+
 	}
 
 }

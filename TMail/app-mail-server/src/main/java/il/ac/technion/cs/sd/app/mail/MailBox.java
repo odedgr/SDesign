@@ -1,11 +1,10 @@
 package il.ac.technion.cs.sd.app.mail;
 
 import java.security.InvalidParameterException;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +14,7 @@ import java.util.Map;
  */
 public class MailBox {
 	
-	Deque<Mail> unread = new ArrayDeque<Mail>();
+	Map<Integer, Mail> unread = new LinkedHashMap<Integer, Mail>(); // <mail.hashCode(), mail>
 	List<Mail> all_mail = new ArrayList<Mail>(); // ordered from oldest (start) to newest (end). new mails are appended at the end
 	List<Mail> sent = new ArrayList<Mail>(); // ordered from oldest (start) to newest (end). new mails are appended at the end
 	List<Mail> inbox = new ArrayList<Mail>(); // ordered from oldest (start) to newest (end). new mails are appended at the end
@@ -61,7 +60,8 @@ public class MailBox {
 	public void receivedMail(Mail mail) {
 		this.inbox.add(mail);
 		this.all_mail.add(mail);
-		this.unread.push(mail);
+		this.unread.put(mail.hashCode(), mail);
+		
 		addToCorrespondenceWith(mail, mail.from);
 	}
 	
@@ -71,9 +71,7 @@ public class MailBox {
 	 * @param mail MailEntry to be marked.
 	 */
 	private void readMail(Mail mail) {
-		if (this.unread.peekFirst() == mail) {
-			this.unread.pop();
-		}
+		this.unread.remove(mail.hashCode());
 	}
 	
 	/**
@@ -82,10 +80,9 @@ public class MailBox {
 	 * @return List of unread mail.
 	 */
 	public List<Mail> getUnread() {
-		List<Mail> unreadList = new ArrayList<Mail>(this.unread);
-		
+		List<Mail> unreadList = new ArrayList<Mail>(this.unread.values());
 		this.unread.clear();
-		
+		Collections.reverse(unreadList);
 		return unreadList;
 	}
 	
@@ -167,13 +164,19 @@ public class MailBox {
 		}
 		
 		// truncate only new items, and reverse order so newest is first
-		return getLastMailsOrdered(allMail, howMany);
+		List<Mail> lastMailsOrdered = getLastMailsOrdered(allMail, howMany);
+		
+		for (Mail mail : lastMailsOrdered) {
+			readMail(mail);
+		}
+		
+		return lastMailsOrdered;
 	}
 	
 	/**
 	 * Get a list of at most N most recent (last) MailEntry items from a given list of MailEntrys. Does NOT mark as read.
 	 * 
-	 * @param n - maximal amount of mail items to return.
+	 * @param howMany - maximal amount of mail items to return.
 	 * @return NEW List of at most N most recent mail entries from the list, ordered from newest to oldest.
 	 */	
 	private List<Mail> getLastMailsOrdered(List<Mail> list, int howMany) {
