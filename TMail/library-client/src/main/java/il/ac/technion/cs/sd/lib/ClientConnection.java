@@ -25,8 +25,8 @@ public class ClientConnection<Message> {
 	 * @param serverAddress - Address of this client's server, through which all of its communication is done.
 	 * @return A new ClientConnection instance, initialized and ready for communication.
 	 */
-	public static <Message extends Serializable> ClientConnection<Message> create(String clientAddress, String serverAddress) {
-		return create(clientAddress, serverAddress, new SerializeCodec<Message>());
+	public static <Message extends Serializable> ClientConnection<Message> create(String serverAddress, String clientAddress) {
+		return create(serverAddress, clientAddress, new SerializeCodec<Message>());
 	}
 
 	/**
@@ -39,7 +39,7 @@ public class ClientConnection<Message> {
 	 * @param codec - Custom Codec used for Message conversion to/from byte[]
 	 * @return A new ClientConnection instance, initialized and ready for communication.
 	 */
-	public static <Message> ClientConnection<Message> create(String clientAddress, String serverAddress, Codec<Message> codec) {
+	public static <Message> ClientConnection<Message> create(String serverAddress, String clientAddress, Codec<Message> codec) {
 		Messenger messenger;
 		try {
 			messenger = new MessengerFactory().start(clientAddress);
@@ -169,8 +169,12 @@ public class ClientConnection<Message> {
 	 * 
 	 * @throws MessengerException
 	 */
-	public void kill() throws MessengerException {
-		messenger.kill();
+	public void kill() {
+		try {
+			messenger.kill();
+		} catch (MessengerException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
 

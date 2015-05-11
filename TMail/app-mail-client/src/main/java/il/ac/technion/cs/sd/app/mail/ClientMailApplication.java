@@ -1,5 +1,7 @@
 package il.ac.technion.cs.sd.app.mail;
 
+import il.ac.technion.cs.sd.lib.ClientConnection;
+
 import java.util.List;
 
 /**
@@ -10,13 +12,15 @@ import java.util.List;
  */
 public class ClientMailApplication {
 	
+	private ClientConnection<MailRequest> connection;
+	
 	/**
 	 * Creates a new application, tied to a single user
 	 * @param serverAddress The address of the server to connect to for sending and requesting mail
 	 * @param username The user that will be sending and accepting the mail using this object
 	 */
 	public ClientMailApplication(String serverAddress, String username) {
-		throw new UnsupportedOperationException("Not implemented");
+		connection = ClientConnection.<MailRequest>create(serverAddress, username);
 	}
 	
 	/**
@@ -25,7 +29,9 @@ public class ClientMailApplication {
 	 * @param what The message to send
 	 */
 	public void sendMail(String whom, String what) {
-		throw new UnsupportedOperationException("Not implemented");
+		Mail mail = new Mail(connection.address(), whom, what);
+		MailRequest request = MailRequest.sendMail(mail);
+		connection.send(request);
 	}
 	
 	/**
@@ -35,7 +41,11 @@ public class ClientMailApplication {
 	 * @return A list, ordered of all mails matching the criteria, ordered by time of arrival, of size n <i>at most</i>  
 	 */
 	public List<Mail> getCorrespondences(String whom, int howMany) {
-		throw new UnsupportedOperationException("Not implemented");
+		MailRequest request = MailRequest.getCorrespondences(whom); // TODO: validate that howMany is redundant here.
+		connection.send(request);
+		
+		MailResponse response = connection.receiveBlocking().getResponse();
+		return response.getMailResults();
 	}
 	
 	/**
@@ -44,7 +54,11 @@ public class ClientMailApplication {
 	 * @return A list, ordered of all mails matching the criteria, ordered by time of arrival, of size n <i>at most</i>  
 	 */
 	public List<Mail> getSentMails(int howMany) {
-		throw new UnsupportedOperationException("Not implemented");
+		MailRequest request = MailRequest.getMailSent(howMany);
+		connection.send(request);
+		
+		MailResponse response = connection.receiveBlocking().getResponse();
+		return response.getMailResults();
 	}
 	
 	/**
@@ -53,7 +67,11 @@ public class ClientMailApplication {
 	 * @return A list, ordered of all mails matching the criteria, ordered by time of arrival, of size n <i>at most</i>  
 	 */
 	public List<Mail> getIncomingMail(int howMany) {
-		throw new UnsupportedOperationException("Not implemented");
+		MailRequest request = MailRequest.getIncoming(howMany);
+		connection.send(request);
+		
+		MailResponse response = connection.receiveBlocking().getResponse();
+		return response.getMailResults();
 	}
 	
 	/**
@@ -62,7 +80,11 @@ public class ClientMailApplication {
 	 * @return A list, ordered of all mails matching the criteria, ordered by time of arrival, of size n <i>at most</i>  
 	 */
 	public List<Mail> getAllMail(int howMany) {
-		throw new UnsupportedOperationException("Not implemented");
+		MailRequest request = MailRequest.getAllMail(howMany);
+		connection.send(request);
+		
+		MailResponse response = connection.receiveBlocking().getResponse();
+		return response.getMailResults();
 	}
 	
 	/**
@@ -70,7 +92,11 @@ public class ClientMailApplication {
 	 * @return A list, ordered of all mails matching the criteria, ordered by time of arrival  
 	 */
 	public List<Mail> getNewMail() {
-		throw new UnsupportedOperationException("Not implemented");
+		MailRequest request = MailRequest.getUnread();
+		connection.send(request);
+		
+		MailResponse response = connection.receiveBlocking().getResponse();
+		return response.getMailResults();
 	}
 	
 	/**
@@ -85,6 +111,6 @@ public class ClientMailApplication {
 	 * This is mainly used to clean resource use in test cleanup code.
 	 */
 	public void stop() {
-		
+		connection.kill();
 	}
 }
