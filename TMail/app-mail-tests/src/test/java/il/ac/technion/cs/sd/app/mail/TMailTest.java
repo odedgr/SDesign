@@ -13,6 +13,7 @@ import org.junit.Test;
 public class TMailTest {
 	private ServerMailApplication		server	= new ServerMailApplication("server");
 	private List<ClientMailApplication>	clients	= new ArrayList<>();
+	private Thread						serverThread;
 	
 	private ClientMailApplication buildClient(String login) {
 		ClientMailApplication $ = new ClientMailApplication(server.getAddress(), login);
@@ -21,15 +22,20 @@ public class TMailTest {
 	}
 	
 	@Before 
-	public void setp() {
-		server.start();
+	public void setup() throws InterruptedException {
+		serverThread = new Thread(() -> server.start());
+		serverThread.start();
+		Thread.yield(); // STRONG hints to the OS to start the server thread, though nothing can be *truly* deterministic
+		Thread.sleep(100);
 	}
 	
+	@SuppressWarnings("deprecation") // "I know what I'm doing"
 	@After 
 	public void teardown() {
 		server.stop();
 		server.clean();
 		clients.forEach(x -> x.stop());
+		serverThread.stop();
 	}
 	
 	@Test 
@@ -41,7 +47,7 @@ public class TMailTest {
 		assertEquals(itay.getNewMail(), Arrays.asList(new Mail("Gal", "Itay", "Hi")));
 		itay.sendMail("Gal", "sup");
 		assertEquals(gal.getAllMail(3), Arrays.asList(
-				new Mail("Itay", "Gal","sup"),
+				new Mail("Itay", "Gal", "sup"),
 				new Mail("Gal", "Itay", "Hi")));
 	}
 }
