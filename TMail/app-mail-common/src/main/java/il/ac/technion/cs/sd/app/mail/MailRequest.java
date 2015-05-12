@@ -105,17 +105,29 @@ public class MailRequest implements Serializable {
 	 * @return amount requested or result count.
 	 */
 	public int getAmount() {
+		if (amount < 0) {
+			throw new RuntimeException("No amount provided with this request. Check your message type.");
+		}
 		return amount;
 	}
 
 	public Mail getMail() {
+		if (mail == null) {
+			throw new RuntimeException("No mail provided with this request. Check your message type.");
+		}
 		return mail;
 	}
 
 	public String getOtherClient() {
+		if (otherClient == null) {
+			throw new RuntimeException("No otherClient provided with this request. Check your message type.");
+		}
 		return otherClient;
 	}
 	public MailResponse getResponse() {
+		if (response == null) {
+			throw new RuntimeException("This request has not been responded yet.");
+		}
 		return response;
 	}
 }
