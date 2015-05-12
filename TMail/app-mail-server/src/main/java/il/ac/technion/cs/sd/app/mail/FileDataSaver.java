@@ -7,10 +7,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.Optional;
 
-public class FileDataSaver<T extends Serializable> implements DataSaver<T> {
+public class FileDataSaver<T> implements DataSaver<T> {
 
 	final String fileName;
 	
@@ -41,13 +40,13 @@ public class FileDataSaver<T extends Serializable> implements DataSaver<T> {
 
 	@Override
 	public Optional<T> load() {
-		File f = new File(fileName);
-		if (!f.exists()) {
+		File file = new File(fileName);
+		if (!file.exists()) {
 			return Optional.empty();
 		}
 		FileInputStream fis;
 		try {
-			fis = new FileInputStream(f);
+			fis = new FileInputStream(file);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		}
@@ -71,8 +70,12 @@ public class FileDataSaver<T extends Serializable> implements DataSaver<T> {
 	}
 
 	@Override
-	public void clear() {
-		// TODO Auto-generated method stub
+	public void clean() {
+		File file = new File(fileName);
+		if (!file.exists()) {
+			return;
+		}
+		file.delete();
 		
 	}
 }

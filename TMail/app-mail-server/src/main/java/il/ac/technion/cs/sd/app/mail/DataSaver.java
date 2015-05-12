@@ -5,5 +5,5 @@ import java.util.Optional;
 public interface DataSaver<T> {
 	void save(T data);
 	Optional<T> load();
-	void clear();
+	void clean();
 }
