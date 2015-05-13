@@ -36,7 +36,7 @@ public class MailResponse implements Serializable {
 	 */
 	public List<Mail> getMailResults() {
 		if (mailList == null) {
-			throw new RuntimeException("No mail results in this response. Re-check response type.");
+			throw new RuntimeException("No mail results in this response. Check the containing request type.");
 		}
 		return mailList;
 	}
@@ -49,7 +49,7 @@ public class MailResponse implements Serializable {
 	 */
 	public List<String> getContactsResults() {
 		if (contactsList == null) {
-			throw new RuntimeException("No contacts results in this response. Re-check response type.");
+			throw new RuntimeException("No contacts results in this response. Check the containing request type.");
 		}
 		return this.contactsList;
 	}

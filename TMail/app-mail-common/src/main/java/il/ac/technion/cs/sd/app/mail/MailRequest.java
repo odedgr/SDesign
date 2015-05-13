@@ -87,7 +87,7 @@ public class MailRequest implements Serializable {
 	}
 	
 	public void attachResponse(MailResponse response) {
-		this.attachResponse(response);
+		this.response = response;
 	}
 	
 	/**
@@ -106,21 +106,21 @@ public class MailRequest implements Serializable {
 	 */
 	public int getAmount() {
 		if (amount < 0) {
-			throw new RuntimeException("No amount provided with this request. Check your message type.");
+			throw new RuntimeException("No amount provided with this request. Check your request type.");
 		}
 		return amount;
 	}
 
 	public Mail getMail() {
 		if (mail == null) {
-			throw new RuntimeException("No mail provided with this request. Check your message type.");
+			throw new RuntimeException("No mail provided with this request. Check your request type.");
 		}
 		return mail;
 	}
 
 	public String getOtherClient() {
 		if (otherClient == null) {
-			throw new RuntimeException("No otherClient provided with this request. Check your message type.");
+			throw new RuntimeException("No otherClient provided with this request. Check your request type.");
 		}
 		return otherClient;
 	}
