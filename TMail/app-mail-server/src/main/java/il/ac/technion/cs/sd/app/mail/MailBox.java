@@ -4,15 +4,39 @@ import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A Container for all of a single client's mail and information.
  */
 public class MailBox {
-	Map<Integer, Mail> unread = new LinkedHashMap<Integer, Mail>(); // <mail.hashCode(), mail>
+	
+	/*
+	 * Wraps the mail so the equality will be based on identity and not on content equality.
+	 */
+	private static class MailWrapper {
+	    final public Mail mail;
+	    
+	    public MailWrapper(Mail mail) {
+			this.mail = mail;
+		}
+	    
+	    @Override
+	    public boolean equals(Object obj) {
+	        MailWrapper otherWrapper = (MailWrapper)obj;
+	        return (otherWrapper.mail == this.mail);
+	    }
+	    
+	    @Override
+	    public int hashCode() {
+	    	return mail.hashCode();
+	    }
+	} 
+	
+	Set<MailWrapper> unread = new LinkedHashSet<MailWrapper>(); // <mail.hashCode(), mail>
 	List<Mail> all_mail = new ArrayList<Mail>(); // ordered from oldest (start) to newest (end). new mails are appended at the end
 	List<Mail> sent = new ArrayList<Mail>(); // ordered from oldest (start) to newest (end). new mails are appended at the end
 	List<Mail> inbox = new ArrayList<Mail>(); // ordered from oldest (start) to newest (end). new mails are appended at the end
@@ -38,16 +62,27 @@ public class MailBox {
 		Mail mail;
 		for (int i = 0; i < mails.size(); ++i) {
 			mail = mails.get(i);
+			boolean mail_read = read.get(i);
 			
+			if (client == mail.from && client == mail.to) {
+				this.sent.add(mail);
+				this.all_mail.add(mail);
+				this.inbox.add(mail);
+				this.unread.add(new MailWrapper(mail));
+				addToCorrespondenceWith(mail, mail.to);
+				if (mail_read) {
+					markAsRead(mail);
+				}
+				continue;
+			}  
 			if (client == mail.from) { // this client sent the mail
 				sentMail(mail);
 				continue;
 			}
 
-			// this client received the mail
 			receivedMail(mail);
-			if (true == read.get(i)) {
-				readMail(mail);
+			if (mail_read) {
+				markAsRead(mail);
 			}
 		}
 	}
@@ -70,7 +105,7 @@ public class MailBox {
 		
 		for (Mail mail : all_mail) {
 			mails.add(mail);
-			read.add(unread.containsKey(mail.hashCode()));
+			read.add(unread.contains(new MailWrapper(mail)));
 		}
 	}
 	
@@ -114,7 +149,7 @@ public class MailBox {
 	public void receivedMail(Mail mail) {
 		this.inbox.add(mail);
 		this.all_mail.add(mail);
-		this.unread.put(mail.hashCode(), mail);
+		this.unread.add(new MailWrapper(mail));
 		
 		addToCorrespondenceWith(mail, mail.from);
 	}
@@ -124,8 +159,8 @@ public class MailBox {
 	 * 
 	 * @param mail Mail to be marked.
 	 */
-	private void readMail(Mail mail) {
-		this.unread.remove(mail.hashCode());
+	private void markAsRead(Mail mail) {
+		this.unread.remove(new MailWrapper(mail));
 	}
 	
 	/**
@@ -134,7 +169,10 @@ public class MailBox {
 	 * @return List of unread mail.
 	 */
 	public List<Mail> getUnread() {
-		List<Mail> unreadList = new ArrayList<Mail>(this.unread.values());
+		List<Mail> unreadList = new ArrayList<Mail>();
+		for (MailWrapper mw : this.unread) {
+			unreadList.add(mw.mail);
+		}
 		this.unread.clear();
 		Collections.reverse(unreadList);
 		return unreadList;
@@ -168,7 +206,7 @@ public class MailBox {
 		List<Mail> lastReceived = getLastMailsOrdered(this.inbox, n);
 		
 		for (Mail mail : lastReceived) {
-			readMail(mail);
+			markAsRead(mail);
 		}
 		
 		return lastReceived;
@@ -188,7 +226,7 @@ public class MailBox {
 		List<Mail> lastMail = getLastMailsOrdered(this.all_mail, howMany);
 		
 		for (Mail mail : lastMail) {
-			readMail(mail);
+			markAsRead(mail);
 		}
 		
 		return lastMail;
@@ -221,7 +259,7 @@ public class MailBox {
 		List<Mail> lastMailsOrdered = getLastMailsOrdered(allMail, howMany);
 		
 		for (Mail mail : lastMailsOrdered) {
-			readMail(mail);
+			markAsRead(mail);
 		}
 		
 		return lastMailsOrdered;
