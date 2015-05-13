@@ -1,12 +1,13 @@
 package il.ac.technion.cs.sd.app.mail;
 
+import il.ac.technion.cs.sd.lib.MessageWithSender;
 import il.ac.technion.cs.sd.lib.ServerConnection;
-import il.ac.technion.cs.sd.msg.MessengerException;
 
 import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * The server side of the TMail application. <br>
@@ -15,9 +16,9 @@ import java.util.Map;
 public class ServerMailApplication {
 	
 	// instance variables
-	private String myAddress = null;
-	private boolean active = false;
-	private ServerConnection<Envelope> sConn = null;
+	private final String address;
+	private ServerConnection<MailRequest> connection;
+	private DataSaver<List<Mail>> dataSaver;  // TODO: come up with a better name?
 
 	// loaded / stored to independent db
 	private Map<String, MailBox> mailboxes = new HashMap<String, MailBox>(); // <client address : client mailbox>
@@ -32,18 +33,16 @@ public class ServerMailApplication {
 		if (null == name || name.equals("")) {
 			throw new InvalidParameterException("Server name cannot be null or empty");
 		}
+		address = name;
 		
-		sConn = ServerConnection.create(name);
-		myAddress = name;
-	
-		throw new UnsupportedOperationException("Not implemented");
+		dataSaver = new FileDataSaver<List<Mail>>("app-mail-data"); // TODO: add address to filename.
 	}
 	
 	/**
 	 * @return the server's address; this address will be used by clients connecting to the server
 	 */
 	public String getAddress() {
-		return sConn.address();
+		return address;
 	}
 	
 	/**
@@ -53,11 +52,21 @@ public class ServerMailApplication {
 	 * calls to {@link ServerMailApplication#start()}.
 	 */
 	public void start() {
-		loadDb();
-		sConn.start();
-		this.active = true;
+		loadData();
+		connection = ServerConnection.<MailRequest>create(address);
+		// TODO: load from DB
 		
-		// TODO start listening for incoming requests, using the sConn receive methods
+		while (true) {
+			MessageWithSender<MailRequest> signed_request = connection.receiveBlocking();
+			String client = signed_request.sender;
+			MailRequest request = signed_request.content;
+			Optional<MailResponse> response = handleRequest(client, request);
+			if (response.isPresent()) {
+				request.attachResponse(response.get());
+				// Send the request with the attached response back to the client.
+				connection.send(client, request);
+			}
+		}
 	}
 	
 	/**
@@ -65,9 +74,8 @@ public class ServerMailApplication {
 	 * any system resources (e.g., messengers).
 	 */
 	public void stop() {
-		saveDb();
-		this.active = false;
-		sConn.kill();
+		saveData();
+		connection.kill();
 	}
 	
 	/**
@@ -76,11 +84,46 @@ public class ServerMailApplication {
 	 */
 	public void clean() {
 		mailboxes = new HashMap<String, MailBox>();
+		dataSaver.clean();
+		
 		// TODO should sConn also be reset?
 		// TODO should the state change?
+		// TODO: clean db.
 	}
 	
 		////////////////
+	
+	// TODO: is optional the best choice?
+	private Optional<MailResponse> handleRequest(String client, MailRequest request) {
+		MailResponse response = null;
+		switch (request.getType()) {
+		case GET_ALL_MAIL:
+			response = MailResponse.withMailResults(getAllMailOfClient(client, request.getAmount()));
+			break;
+		case GET_CONTACTS:
+			response = MailResponse.withContactsResults(getContacts(client));
+			break;
+		case GET_CORRESPONDANCES:
+			response = MailResponse.withMailResults(getCorrespondencesBetween(client,request.getOtherClient(), request.getAmount()));
+			break;
+		case GET_INCOMING:
+			response = MailResponse.withMailResults(getIncomingMailOfClient(client, request.getAmount()));
+			break;
+		case GET_MAIL_SENT:
+			response = MailResponse.withMailResults(getSentMailOfClient(client, request.getAmount()));
+			break;
+		case GET_UNREAD:
+			response = MailResponse.withMailResults(getUnreadMailOfClient(client));
+			break;
+		case SEND_MAIL:
+			addNewMail(request.getMail());
+			break;
+		default:
+			break;
+		}
+		return response != null ? Optional.of(response) : Optional.empty();
+	}
+
 	
 	/**
 	 * Add a new mail item, sent from one client to another, via this server.
@@ -136,6 +179,11 @@ public class ServerMailApplication {
 		return mailbox.getLastNReceived(howMany);
 	}
 	
+	private List<String> getContacts(String client) {
+		MailBox mailbox = mailboxes.get(client);
+		return mailbox.getContacts();
+	}
+	
 	/**
 	 * Retrieve at most howMany of the most recent mail items a given client has either sent or received.
 	 * 
@@ -160,19 +208,20 @@ public class ServerMailApplication {
 	}
 	
 	/**
-	 * Load a previously stored database of mailboxes and their contents into the active server.
+	 * Store all of this server's current data (mailboxes and their contents) into a file. 
 	 */
-	private void loadDb() {
+	private void saveData() {
+		// dataSaver.save(/**/); TODO: which data should we save?
+		
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException("Not implemented");
 	}
 	
 	/**
-	 * Store all of this server's current data (mailboxes and their contents) into a file. 
+	 * Load a previously stored database of mailboxes and their contents into the active server.
 	 */
-	private void saveDb() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Not implemented");
+	private void loadData() {
+//		Optional<???> dataSaver.load
+//		throw new UnsupportedOperationException("Not implemented");
 	}
-	
 }
