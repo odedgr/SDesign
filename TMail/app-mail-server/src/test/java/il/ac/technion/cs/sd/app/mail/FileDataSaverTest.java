@@ -27,7 +27,8 @@ public class FileDataSaverTest {
 
 	@After
 	public void tearDown() throws Exception {
-//		fds_str.clean();
+		fds_str.clean();
+		fds_list.clean();
 	}
 
 	// TODO: Split to several test functions.
@@ -69,11 +70,4 @@ public class FileDataSaverTest {
 		fds_list.clean();
 		assertFalse(fds_list.load().isPresent());
 	}
-	
-	@Test
-	public void testPers() {
-		FileDataSaver<String> persistence = new FileDataSaver<String>("oriking");
-		persistence.clean();
-	}
-
 }

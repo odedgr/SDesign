@@ -9,14 +9,31 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Optional;
 
+/**
+ * An interface for saving and loading persistent data to a file. The concrete
+ * data instance sent to this class must implement the Serializable interface.
+ * For example, you can instantiate this class using List as its data type, and
+ * send ArrayList to the encode method.
+ * 
+ * @param <T>
+ *            The data type to save.
+ */
 public class FileDataSaver<T> implements DataSaver<T> {
 
 	final String fileName;
 	
+	/**
+	 * Creates a new DataSaver.
+	 * @param fileName the filename to use to save and load the data.
+	 */
 	FileDataSaver(String fileName) {
 		this.fileName = fileName;
 	}
 	
+	/**
+	 * Save data to the file.
+	 * @param data the data to save.
+	 */
 	@Override
 	public void save(T data) {
 		ObjectOutputStream oos = null;
@@ -37,7 +54,11 @@ public class FileDataSaver<T> implements DataSaver<T> {
 			}
 		}
 	}
-
+	
+	/**
+	 * Loads the previously saved data from the file, if exists.
+	 * @return the previously saved data; or an empty optional in case there is no data saved/data was cleaned.
+	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public Optional<T> load() {
@@ -70,6 +91,9 @@ public class FileDataSaver<T> implements DataSaver<T> {
 		}
 	}
 
+	/**
+	 * Clears all saved data, deletes the file used to save the data.
+	 */
 	@Override
 	public void clean() {
 		File file = new File(fileName);
