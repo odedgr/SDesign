@@ -15,64 +15,55 @@ import org.junit.Test;
 
 public class MailBoxTest {
 	
-	MailBox mailbox = null;
+	MailBox mailbox;
 	
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
-
 	@Before
 	public void setUp() throws Exception {
 		mailbox = new MailBox();
 	}
 
-	@After
-	public void tearDown() throws Exception {
-		mailbox = null;
+	private MailEntry newEntry(String from, String to, String content) {
+		return new MailEntry(new Mail(from, to, content));
 	}
-
-//////////////////////////////////////////////////
 	
 	@Test
 	public void sentMailReceiverAddedToContacts() {
-		mailbox.sentMail(new Mail("from", "to", "bla bla"));
+		MailEntry entry = newEntry("from", "to", "bla bla");
+		mailbox.addSentMail(entry);
 		assertTrue("contacts should include the sender of an incomming mail.", mailbox.getContacts().contains("to"));
 	}
 	
 	@Test
 	public void receivedMailSenderAddedToContacts() {
-		mailbox.receivedMail(new Mail("from", "to", "bla bla"));
+		MailEntry entry = newEntry("from", "to", "bla bla");
+		mailbox.addReceivedMail(entry);
 		assertTrue("contacts should include the receiver of an outgoing mail.", mailbox.getContacts().contains("from"));
 	}
 	
 	@Test
 	public void correspondenceIncludesSentMail() {
-		Mail mail = new Mail("from", "to", "bla bla");
-		mailbox.sentMail(mail);
-		assertTrue("correspondence should include sent mail", mailbox.getCorrespondeceWith("to", 1).contains(mail));
+		MailEntry entry = newEntry("from", "to", "bla bla");
+		mailbox.addSentMail(entry);
+		assertTrue("correspondence should include sent mail", mailbox.getCorrespondeceWith("to", 1).contains(entry));
 	}
 	
 	@Test
 	public void correspondenceIncludesReceivedMail() {
-		Mail mail = new Mail("from", "to", "bla bla");
-		mailbox.receivedMail(mail);
-		assertTrue("correspondence should include received mail", mailbox.getCorrespondeceWith("from", 1).contains(mail));
+		MailEntry entry = newEntry("from", "to", "bla bla");
+		mailbox.addReceivedMail(entry);
+		assertTrue("correspondence should include received mail", mailbox.getCorrespondeceWith("from", 1).contains(entry));
 	}
 	
 	@Test
 	public void correspondenceIncludesBothSentAndReceived() {
-		Mail in_mail = new Mail("other", "myself", "bla bla");
-		mailbox.receivedMail(in_mail);
+		MailEntry incoming = newEntry("other", "myself", "bla bla");
+		mailbox.addReceivedMail(incoming);
 		
-		Mail out_mail = new Mail("myself", "other", "yada yada");
-		mailbox.sentMail(out_mail);
+		MailEntry outgoing = newEntry("myself", "other", "yada yada");
+		mailbox.addSentMail(outgoing);
 		
 		assertTrue("correspondence should include received mail", 
-				mailbox.getCorrespondeceWith("other", 2).containsAll(Arrays.asList(in_mail, out_mail)));
+				mailbox.getCorrespondeceWith("other", 2).containsAll(Arrays.asList(incoming, outgoing)));
 	}
 	
 	@Test
@@ -81,20 +72,20 @@ public class MailBoxTest {
 		final int sentCount = 3;
 		sendMailsFromMe(sentCount);
 		
-		List<Mail> mails = mailbox.getLastNSent(sentCount);
+		List<MailEntry> mails = mailbox.getLastNSent(sentCount);
 		
 		assertMailOrder(mails);
 	}
 	
 	private void sendMailsFromMe(int howMany) {
 		for (int i = 0; i < howMany; ++i) {
-			mailbox.sentMail(new Mail("me", "other-" + i, String.valueOf(i)));
+			mailbox.addSentMail(newEntry("me", "other-" + i, String.valueOf(i)));
 		}
 	}
 	
 	private void receiveMails(int howMany) {
 		for (int i = 0; i < howMany; ++i) {
-			mailbox.receivedMail(new Mail("other-" + i, "me", String.valueOf(i)));
+			mailbox.addReceivedMail(newEntry("other-" + i, "me", String.valueOf(i)));
 		}
 	}
 
@@ -103,7 +94,7 @@ public class MailBoxTest {
 		final int receiveCount = 5;
 		receiveMails(receiveCount);
 		
-		List<Mail> mails = mailbox.getUnread();
+		List<MailEntry> mails = mailbox.getUnread();
 		assertEquals("should have " + receiveCount + " unread mails", receiveCount, mails.size());
 		
 		assertMailOrder(mails);
@@ -114,7 +105,7 @@ public class MailBoxTest {
 		final int receiveCount = 5;
 		receiveMails(receiveCount);
 		
-		List<Mail> mails = mailbox.getLastNReceived(receiveCount);
+		List<MailEntry> mails = mailbox.getLastNReceived(receiveCount);
 		assertEquals("should have received" + receiveCount + " mails", receiveCount, mails.size());
 		
 		assertMailOrder(mails);
@@ -122,15 +113,15 @@ public class MailBoxTest {
 	
 	@Test
 	public void allMailIncludesBothSentAndReceived() {
-		Mail outgoing1 = new Mail("me", "other", "outgoing1");
-		Mail outgoing2 = new Mail("me", "other", "outgoing2");
-		Mail incoming = new Mail("other", "me", "incoming");
+		MailEntry outgoing1 = newEntry("me", "other", "outgoing1");
+		MailEntry outgoing2 = newEntry("me", "other", "outgoing2");
+		MailEntry incoming = newEntry("other", "me", "incoming");
 		
-		mailbox.sentMail(outgoing1);
-		mailbox.sentMail(outgoing2);
-		mailbox.receivedMail(incoming);
+		mailbox.addSentMail(outgoing1);
+		mailbox.addSentMail(outgoing2);
+		mailbox.addReceivedMail(incoming);
 		
-		List<Mail> mails = mailbox.getLastNMails(3);
+		List<MailEntry> mails = mailbox.getLastNMails(3);
 		assertEquals("all mail from mailbox should include 3 messages (2 out, 1 in)", 3, mails.size());
 		
 		assertTrue("all mail should include both sent+received messages", mails.containsAll(Arrays.asList(outgoing1, outgoing2, incoming)));
@@ -142,22 +133,22 @@ public class MailBoxTest {
 		final int requestedMailAmount = 10;
 		
 		for (int i = 0; i < totalMailAmount; i += 2) {
-			mailbox.sentMail(new Mail("me", "other", String.valueOf(i)));
+			mailbox.addSentMail(newEntry("me", "other", String.valueOf(i)));
 			Thread.sleep(2);
-			mailbox.receivedMail(new Mail("other", "me", String.valueOf(i + 1)));
+			mailbox.addReceivedMail(newEntry("other", "me", String.valueOf(i + 1)));
 		}
 		
-		List<Mail> mails = mailbox.getLastNMails(requestedMailAmount);
+		List<MailEntry> mails = mailbox.getLastNMails(requestedMailAmount);
 		
 		assertMailOrder(mails);
 	}
 
-	private void assertMailOrder(List<Mail> mails) {
-		int currentMsgIndex, prevMsgIndex = Integer.parseInt(mails.get(0).content);
+	private void assertMailOrder(List<MailEntry> mails) {
+		int currentMsgIndex, prevMsgIndex = Integer.parseInt(mails.get(0).getMail().content);
 		
-		for (Mail mail : mails) {
+		for (MailEntry entry : mails) {
 			// extracted index from content is a number, they should go down
-			currentMsgIndex = Integer.parseInt(mail.content);
+			currentMsgIndex = Integer.parseInt(entry.getMail().content);
 			assertTrue("mail not ordered in descending order of receiving", currentMsgIndex <= prevMsgIndex);
 			prevMsgIndex = currentMsgIndex;
 		}
@@ -170,7 +161,7 @@ public class MailBoxTest {
 
 		for (int i = 0; i < largestSizeTested - 1; ++i) {
 			assertEquals("sent only " + i + " mails - should return " + i, i, mailbox.getLastNMails(largestSizeTested).size());
-			mailbox.sentMail(new Mail("me", "other", ""));
+			mailbox.addSentMail(newEntry("me", "other", ""));
 		}
 	}
 	
@@ -181,7 +172,7 @@ public class MailBoxTest {
 		final int requestAmount = mailCount - 1;
 
 		for (int i = 0; i < mailCount; ++i) {
-			mailbox.sentMail(new Mail("me", "other", ""));
+			mailbox.addSentMail(newEntry("me", "other", ""));
 		}
 		
 		assertEquals("should only return at most requested amount, no more", requestAmount, mailbox.getLastNMails(requestAmount).size());
@@ -190,13 +181,13 @@ public class MailBoxTest {
 	@Test
 	public void returnedReceivedEntriesAreNewestAndMarkedAsRead() {
 		// fetch entries with different queries and see if they are returned as unread
-		Mail older = new Mail("you", "me", "ping");
-		Mail newer = new Mail("you", "me", "pong");
+		MailEntry older = newEntry("you", "me", "ping");
+		MailEntry newer = newEntry("you", "me", "pong");
 		
-		mailbox.receivedMail(older);
-		mailbox.receivedMail(newer);
+		mailbox.addReceivedMail(older);
+		mailbox.addReceivedMail(newer);
 		
-		List<Mail> onlyLastMail = mailbox.getLastNReceived(1); 
+		List<MailEntry> onlyLastMail = mailbox.getLastNReceived(1); 
 		
 		assertTrue("returned mail list should contain the newer mail", onlyLastMail.contains(newer));
 		assertTrue("returned mail list should NOT contain the older mail", !onlyLastMail.contains(older));
@@ -208,17 +199,17 @@ public class MailBoxTest {
 	@Test
 	public void returnedEntriesAreNewestAndMarkedAsRead() throws InterruptedException {
 		// fetch entries with different queries and see if they are returned as unread
-		Mail oldest = new Mail("you", "me", "oldest");
-		Mail older  = new Mail("me", "you", "older");
-		Mail newer  = new Mail("you", "me", "newer");
-		Mail newest = new Mail("me", "you", "newest");
+		MailEntry oldest = newEntry("you", "me", "oldest");
+		MailEntry older  = newEntry("me", "you", "older");
+		MailEntry newer  = newEntry("you", "me", "newer");
+		MailEntry newest = newEntry("me", "you", "newest");
 		
-		mailbox.receivedMail(oldest);
-		mailbox.sentMail(older);
-		mailbox.receivedMail(newer);
-		mailbox.sentMail(newest);
+		mailbox.addReceivedMail(oldest);
+		mailbox.addSentMail(older);
+		mailbox.addReceivedMail(newer);
+		mailbox.addSentMail(newest);
 		
-		List<Mail> onlyLastMail = mailbox.getLastNMails(2); 
+		List<MailEntry> onlyLastMail = mailbox.getLastNMails(2); 
 		
 		assertTrue("returned mail list should contain the newest mail", onlyLastMail.contains(newest));
 		assertTrue("returned mail list should contain the newer mail", onlyLastMail.contains(newer));
@@ -245,16 +236,13 @@ public class MailBoxTest {
 	
 	@Test
 	public void getCorrespondeceMarksAsUnread() {
-		mailbox.receivedMail(new Mail("one", "me", "bla"));
-		mailbox.receivedMail(new Mail("two", "me", "bla"));
-		mailbox.receivedMail(new Mail("one", "me", "bla"));
-		mailbox.receivedMail(new Mail("three", "me", "bla"));
+		mailbox.addReceivedMail(newEntry("one", "me", "bla"));
+		mailbox.addReceivedMail(newEntry("two", "me", "bla"));
+		mailbox.addReceivedMail(newEntry("one", "me", "bla"));
+		mailbox.addReceivedMail(newEntry("three", "me", "bla"));
 		
 		assertEquals("received two messages from \"one\"", 2 ,mailbox.getCorrespondeceWith("one", 2).size());
 		assertEquals("should only get the mail from \"three\"", 1, mailbox.getLastNMails(1).size());
 		assertEquals("one the single mail from \"two\" should remain", 1, mailbox.getUnread().size());
 	}
-	
-	// TODO test database loading and storing
-
 }

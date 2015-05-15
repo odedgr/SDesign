@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The server side of the TMail application. <br>
@@ -20,8 +21,8 @@ public class ServerMailApplication {
 	private final String address;
 	private ServerConnection<MailRequest> connection;
 	
-	private List<Mail> history;
-	private DataSaver<List<Mail>> dataSaver;  // TODO: come up with a better name?
+	private List<MailEntry> history;
+	private DataSaver<List<MailEntry>> dataSaver;  // TODO: come up with a better name?
 
 	// loaded / stored to independent db
 	private Map<String, MailBox> mailboxes = new HashMap<String, MailBox>(); // <client address : client mailbox>
@@ -36,10 +37,11 @@ public class ServerMailApplication {
 		if (null == name || name.equals("")) {
 			throw new InvalidParameterException("Server name cannot be null or empty");
 		}
+		
 		address = name;
 		
-		history = new ArrayList<Mail>();
-		dataSaver = new FileDataSaver<List<Mail>>("app-mail-data"); // TODO: add address to filename.
+		history = new ArrayList<MailEntry>();
+		dataSaver = new FileDataSaver<List<MailEntry>>("app-mail-data-" + address);
 	}
 	
 	/**
@@ -88,12 +90,8 @@ public class ServerMailApplication {
 	 */
 	public void clean() {
 		mailboxes = new HashMap<String, MailBox>();
-		history = new ArrayList<Mail>();
+		history = new ArrayList<MailEntry>();
 		dataSaver.clean();
-		
-		// TODO should sConn also be reset?
-		// TODO should the state change?
-		// TODO: clean db.
 	}
 	
 	// TODO: is optional the best choice?
@@ -138,16 +136,15 @@ public class ServerMailApplication {
 		String sender = mail.from;
 		String receiver = mail.to;
 		
+		MailEntry entry = new MailEntry(mail);
+		
 		MailBox senderBox = getMailBoxOfClient(sender);
 		MailBox receiverBox = getMailBoxOfClient(receiver);
 		
-//		MailBox senderBox = mailboxes.get(sender);
-//		MailBox receiverBox = mailboxes.get(receiver);
+		senderBox.addSentMail(entry);
+		receiverBox.addReceivedMail(entry);
 		
-		senderBox.sentMail(mail);
-		receiverBox.receivedMail(mail);
-		
-		history.add(mail);
+		history.add(entry);
 	}
 	
 	/**
@@ -160,7 +157,8 @@ public class ServerMailApplication {
 	 */
 	private List<Mail> getCorrespondencesBetween(String requester, String otherClient, int howMany) {
 		MailBox mailbox = getMailBoxOfClient(requester);
-		return mailbox.getCorrespondeceWith(otherClient, howMany);
+		return mailbox.getCorrespondeceWith(otherClient, howMany).stream()
+				.map(entry -> entry.getMail()).collect(Collectors.toList());
 	}
 	
 	/**
@@ -172,7 +170,8 @@ public class ServerMailApplication {
 	 */
 	private List<Mail> getSentMailOfClient(String client, int howMany) {
 		MailBox mailbox = getMailBoxOfClient(client);
-		return mailbox.getLastNSent(howMany);
+		return mailbox.getLastNSent(howMany).stream()
+				.map(entry -> entry.getMail()).collect(Collectors.toList());
 	}
 	
 	/**
@@ -184,7 +183,8 @@ public class ServerMailApplication {
 	 */
 	private List<Mail> getIncomingMailOfClient(String client, int howMany) {
 		MailBox mailbox = getMailBoxOfClient(client);
-		return mailbox.getLastNReceived(howMany);
+		return mailbox.getLastNReceived(howMany).stream()
+				.map(entry -> entry.getMail()).collect(Collectors.toList());
 	}
 	
 	private List<String> getContacts(String client) {
@@ -201,7 +201,8 @@ public class ServerMailApplication {
 	 */
 	private List<Mail> getAllMailOfClient(String client, int howMany) {
 		MailBox mailbox = getMailBoxOfClient(client);
-		return mailbox.getLastNMails(howMany);
+		return mailbox.getLastNMails(howMany).stream()
+				.map(entry -> entry.getMail()).collect(Collectors.toList());
 	}
 	
 	/**
@@ -212,7 +213,8 @@ public class ServerMailApplication {
 	 */
 	private List<Mail> getUnreadMailOfClient(String client) {
 		MailBox mailbox = getMailBoxOfClient(client); 
-		return mailbox.getUnread();
+		return mailbox.getUnread().stream()
+				.map(entry -> entry.getMail()).collect(Collectors.toList());
 	}
 	
 	/**
@@ -226,11 +228,20 @@ public class ServerMailApplication {
 	 * Load a previously stored database of mailboxes and their contents into the active server.
 	 */
 	private void loadData() {
-		Optional<List<Mail>> loaded = dataSaver.load();
-		if (!loaded.isPresent()) {
-			history = new ArrayList<Mail>();
+		history = new ArrayList<MailEntry>();
+		mailboxes = new HashMap<String, MailBox>(); // TODO: move out to function 'reset mailboxes'
+		
+		Optional<List<MailEntry>> loaded_history = dataSaver.load();
+		if (!loaded_history.isPresent()) {
+			return;
 		}
-		history = loaded.get();
+		
+		for (MailEntry entry : loaded_history.get()) {
+			addNewMail(entry.getMail());
+			if (entry.getIsRead()) {
+				
+			}
+		}
 	}
 	
 	private MailBox getMailBoxOfClient(String client) {
