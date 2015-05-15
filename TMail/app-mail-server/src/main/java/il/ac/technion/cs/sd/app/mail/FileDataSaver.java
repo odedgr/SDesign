@@ -38,6 +38,7 @@ public class FileDataSaver<T> implements DataSaver<T> {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Optional<T> load() {
 		File file = new File(fileName);
