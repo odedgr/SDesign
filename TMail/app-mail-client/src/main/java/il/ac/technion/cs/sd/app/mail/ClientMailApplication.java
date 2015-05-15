@@ -103,7 +103,11 @@ public class ClientMailApplication {
 	 * @return A list, ordered alphabetically, of all other users that sent or received mail from the current user  
 	 */
 	public List<String> getContacts(int howMany) {
-		throw new UnsupportedOperationException("Not implemented");
+		MailRequest request = MailRequest.getContacts();
+		connection.send(request);
+		
+		MailResponse response = connection.receiveBlocking().getResponse();
+		return response.getContactsResults();
 	}
 	
 	/**
