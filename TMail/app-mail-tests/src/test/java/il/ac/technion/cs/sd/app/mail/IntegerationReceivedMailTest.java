@@ -17,6 +17,7 @@ public class IntegerationReceivedMailTest {
 	private ServerMailApplication		server	= new ServerMailApplication("server");
 	private ClientMailApplication       testClient = null;
 	private List<ClientMailApplication>	clients	= new ArrayList<>();
+	private Thread serverThread;
 	
 	private ClientMailApplication buildClient(String login) {
 		ClientMailApplication $ = new ClientMailApplication(server.getAddress(), login);
@@ -26,15 +27,20 @@ public class IntegerationReceivedMailTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		server.start();
+		serverThread = new Thread(() -> server.start());
+		serverThread.start();
+		Thread.yield(); 
+		Thread.sleep(10L);
 		testClient = buildClient("tester");
 	}
 
+	@SuppressWarnings("deprecation")
 	@After
 	public void tearDown() throws Exception {
 		server.clean();
 		server.stop();
 		clients.forEach(c -> c.stop());
+		serverThread.stop();
 	}
 
 	@Test
