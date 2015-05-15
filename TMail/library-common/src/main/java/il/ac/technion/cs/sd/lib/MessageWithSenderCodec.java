@@ -1,7 +1,6 @@
 package il.ac.technion.cs.sd.lib;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 
 /**
  * A codec for encoding and decoding the MessageWithSender Class.

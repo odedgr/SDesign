@@ -37,6 +37,7 @@ public class SerializeCodec<T extends Serializable> implements Codec<T> {
 	 * @param b the array of bytes to decode. 
 	 * @return the decoded object.
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public T decode(byte[] bytes) {
 		try {
