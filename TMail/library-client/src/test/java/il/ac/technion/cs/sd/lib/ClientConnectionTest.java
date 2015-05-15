@@ -47,7 +47,7 @@ public class ClientConnectionTest {
 	public void setUp() throws Exception {
 		this.messenger = Mockito.mock(Messenger.class);
 		Mockito.when(messenger.getAddress()).thenReturn(testClientAddress);
-		cc = new ClientConnection<>(testServerAddress, messenger);
+		cc = ClientConnection.createWithMockMessenger(testServerAddress, messenger);
 	}
 
 	@After
@@ -97,7 +97,7 @@ public class ClientConnectionTest {
 	public void blockOnBlockingReceiveWithNoMessage() throws MessengerException, Exception {
 		new Thread(() -> {
 			try {
-				cc.receiveSingle();
+				cc.receiveBlocking();
 				fail("Should have blocked");
 			} catch (Exception e) {
 				throw new AssertionError(e);
@@ -110,13 +110,13 @@ public class ClientConnectionTest {
 	public void dontBlockOnBlockingReceiveWithMessage() throws MessengerException {
 		Mockito.when(messenger.listen()).thenReturn(testString.getBytes());
 		
-		String resultString = (String) cc.receiveSingleBlocking();
+		String resultString = (String) cc.receiveBlocking();
 		assertEquals("result string was created from test string - they should match", testString, resultString); 
 	}
 	
 	@Test (timeout = 50L)
 	public void dontBlockOnNonBlockingReceiveWithNoMessage() throws MessengerException {
-		Optional<Serializable> resultObject = cc.receiveSingle();
+		Optional<Serializable> resultObject = cc.receive();
 		assertFalse("There should be no result, because there was no message", resultObject.isPresent());
 	}
 	
@@ -124,7 +124,7 @@ public class ClientConnectionTest {
 	public void reconstructSimpleReceivedString() throws MessengerException {
 		Mockito.when(messenger.listen()).thenReturn(testString.getBytes());
 		
-		Optional<Serializable> resultObject = cc.receiveSingle();
+		Optional<Serializable> resultObject = cc.receive();
 		assertTrue("Mockito should have returned an object...", resultObject.isPresent());
 		
 		String resultString = (String) resultObject.get();
@@ -137,7 +137,7 @@ public class ClientConnectionTest {
 		
 		Mockito.when(messenger.listen()).thenReturn(serialize(sentObject));
 		
-		Optional<Serializable> obj = cc.receiveSingle();
+		Optional<Serializable> obj = cc.receive();
 		assertTrue("Mockito should have simulated an incoming message", obj.isPresent());
 		SerializableOnlyFields receivedObject = (SerializableOnlyFields) obj.get();
 		
