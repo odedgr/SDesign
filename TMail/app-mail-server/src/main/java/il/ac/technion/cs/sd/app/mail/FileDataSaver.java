@@ -7,7 +7,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.Optional;
+
+// TODO: break into several tests.
 
 /**
  * An interface for saving and loading persistent data to a file. The concrete
@@ -36,11 +39,12 @@ public class FileDataSaver<T> implements DataSaver<T> {
 	 */
 	@Override
 	public void save(T data) {
+		Serializable serializableData = (Serializable) data;
 		ObjectOutputStream oos = null;
 		try {
 			FileOutputStream fos = new FileOutputStream(fileName);
 			oos = new ObjectOutputStream(fos);
-			oos.writeObject(data);
+			oos.writeObject(serializableData);
 			oos.flush();
 		} catch (IOException e) {
 			throw new RuntimeException(e);

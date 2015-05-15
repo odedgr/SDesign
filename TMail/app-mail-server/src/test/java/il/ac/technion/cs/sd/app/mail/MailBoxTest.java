@@ -26,6 +26,10 @@ public class MailBoxTest {
 		return new MailEntry(new Mail(from, to, content));
 	}
 	
+	private MailEntry newEntry(String from, String to, String content, boolean isRead) {
+		return new MailEntry(new Mail(from, to, content), isRead);
+	}
+	
 	@Test
 	public void sentMailReceiverAddedToContacts() {
 		MailEntry entry = newEntry("from", "to", "bla bla");
@@ -244,5 +248,24 @@ public class MailBoxTest {
 		assertEquals("received two messages from \"one\"", 2 ,mailbox.getCorrespondeceWith("one", 2).size());
 		assertEquals("should only get the mail from \"three\"", 1, mailbox.getLastNMails(1).size());
 		assertEquals("one the single mail from \"two\" should remain", 1, mailbox.getUnread().size());
+	}
+	
+	@Test
+	public void identicalMailsShouldBeTreatedDifferently() {
+		mailbox.addReceivedMail(newEntry("one", "me", "bla"));
+		mailbox.addReceivedMail(newEntry("one", "me", "bla"));
+		assertEquals(2, mailbox.getUnread().size());
+		
+		mailbox.addReceivedMail(newEntry("one", "me", "bla"));
+		mailbox.addReceivedMail(newEntry("one", "me", "bla"));
+		mailbox.getLastNReceived(1);
+		assertEquals(1, mailbox.getUnread().size());
+	}
+	
+	@Test
+	public void addingReadMail() {
+		mailbox.addReceivedMail(newEntry("one", "me", "bla"));
+		mailbox.addReceivedMail(newEntry("one", "me", "bla", true));
+		assertEquals(1, mailbox.getUnread().size());
 	}
 }
