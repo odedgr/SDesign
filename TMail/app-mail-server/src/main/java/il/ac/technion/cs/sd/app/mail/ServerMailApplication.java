@@ -138,8 +138,11 @@ public class ServerMailApplication {
 		String sender = mail.from;
 		String receiver = mail.to;
 		
-		MailBox senderBox = mailboxes.get(sender);
-		MailBox receiverBox = mailboxes.get(receiver);
+		MailBox senderBox = getMailBoxOfClient(sender);
+		MailBox receiverBox = getMailBoxOfClient(receiver);
+		
+//		MailBox senderBox = mailboxes.get(sender);
+//		MailBox receiverBox = mailboxes.get(receiver);
 		
 		senderBox.sentMail(mail);
 		receiverBox.receivedMail(mail);
@@ -156,7 +159,7 @@ public class ServerMailApplication {
 	 * @return List of at most howMany, most recent mail items, in the correspondence between the two clients, ordered from newest to oldest.
 	 */
 	private List<Mail> getCorrespondencesBetween(String requester, String otherClient, int howMany) {
-		MailBox mailbox = mailboxes.get(requester);
+		MailBox mailbox = getMailBoxOfClient(requester);
 		return mailbox.getCorrespondeceWith(otherClient, howMany);
 	}
 	
@@ -168,7 +171,7 @@ public class ServerMailApplication {
 	 * @return List of at most howMany, most recent mail items, the client has sent, ordered from newest to oldest.
 	 */
 	private List<Mail> getSentMailOfClient(String client, int howMany) {
-		MailBox mailbox = mailboxes.get(client);
+		MailBox mailbox = getMailBoxOfClient(client);
 		return mailbox.getLastNSent(howMany);
 	}
 	
@@ -180,7 +183,7 @@ public class ServerMailApplication {
 	 * @return List of at most howMany, most recent mail items, the client has received, ordered from newest to oldest.
 	 */
 	private List<Mail> getIncomingMailOfClient(String client, int howMany) {
-		MailBox mailbox = mailboxes.get(client);
+		MailBox mailbox = getMailBoxOfClient(client);
 		return mailbox.getLastNReceived(howMany);
 	}
 	
@@ -197,7 +200,7 @@ public class ServerMailApplication {
 	 * @return List of at most howMany, most recent mail items, the client has either sent or received, ordered from newest to oldest.
 	 */
 	private List<Mail> getAllMailOfClient(String client, int howMany) {
-		MailBox mailbox = mailboxes.get(client);
+		MailBox mailbox = getMailBoxOfClient(client);
 		return mailbox.getLastNMails(howMany);
 	}
 	
@@ -208,7 +211,7 @@ public class ServerMailApplication {
 	 * @return List of all the unread mail items of the given client.
 	 */
 	private List<Mail> getUnreadMailOfClient(String client) {
-		MailBox mailbox = mailboxes.get(client);
+		MailBox mailbox = getMailBoxOfClient(client); 
 		return mailbox.getUnread();
 	}
 	
@@ -228,5 +231,16 @@ public class ServerMailApplication {
 			history = new ArrayList<Mail>();
 		}
 		history = loaded.get();
+	}
+	
+	private MailBox getMailBoxOfClient(String client) {
+		MailBox mb = mailboxes.get(client);
+		
+		if (null == mb) {
+			mb = new MailBox();
+			mailboxes.put(client, mb);
+		}
+		
+		return mb;
 	}
 }
