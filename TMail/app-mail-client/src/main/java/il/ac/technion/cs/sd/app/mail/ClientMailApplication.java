@@ -29,7 +29,7 @@ public class ClientMailApplication {
 	 * @param what The message to send
 	 */
 	public void sendMail(String whom, String what) {
-		Mail mail = new Mail(connection.address(), whom, what);
+		Mail mail = new Mail(connection.getAddress(), whom, what);
 		MailRequest request = MailRequest.sendMail(mail);
 		connection.send(request);
 	}
