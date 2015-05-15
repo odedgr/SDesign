@@ -4,6 +4,7 @@ import il.ac.technion.cs.sd.lib.MessageWithSender;
 import il.ac.technion.cs.sd.lib.ServerConnection;
 
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,8 @@ public class ServerMailApplication {
 	// instance variables
 	private final String address;
 	private ServerConnection<MailRequest> connection;
+	
+	private List<Mail> history;
 	private DataSaver<List<Mail>> dataSaver;  // TODO: come up with a better name?
 
 	// loaded / stored to independent db
@@ -35,6 +38,7 @@ public class ServerMailApplication {
 		}
 		address = name;
 		
+		history = new ArrayList<Mail>();
 		dataSaver = new FileDataSaver<List<Mail>>("app-mail-data"); // TODO: add address to filename.
 	}
 	
@@ -84,14 +88,13 @@ public class ServerMailApplication {
 	 */
 	public void clean() {
 		mailboxes = new HashMap<String, MailBox>();
+		history = new ArrayList<Mail>();
 		dataSaver.clean();
 		
 		// TODO should sConn also be reset?
 		// TODO should the state change?
 		// TODO: clean db.
 	}
-	
-		////////////////
 	
 	// TODO: is optional the best choice?
 	private Optional<MailResponse> handleRequest(String client, MailRequest request) {
@@ -140,6 +143,8 @@ public class ServerMailApplication {
 		
 		senderBox.sentMail(mail);
 		receiverBox.receivedMail(mail);
+		
+		history.add(mail);
 	}
 	
 	/**
@@ -211,17 +216,17 @@ public class ServerMailApplication {
 	 * Store all of this server's current data (mailboxes and their contents) into a file. 
 	 */
 	private void saveData() {
-		// dataSaver.save(/**/); TODO: which data should we save?
-		
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Not implemented");
+		dataSaver.save(history);
 	}
 	
 	/**
 	 * Load a previously stored database of mailboxes and their contents into the active server.
 	 */
 	private void loadData() {
-//		Optional<???> dataSaver.load
-//		throw new UnsupportedOperationException("Not implemented");
+		Optional<List<Mail>> loaded = dataSaver.load();
+		if (!loaded.isPresent()) {
+			history = new ArrayList<Mail>();
+		}
+		history = loaded.get();
 	}
 }
