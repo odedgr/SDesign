@@ -2,40 +2,61 @@ package il.ac.technion.cs.sd.app.mail;
 
 /**
  * Wrapper for Mail objects to be stored in a MailBox object, used in the Mail Server application.
- * An Entry contains a single Mail, and marks its time of arrival at the server, and whether it was read or not.
+ * An Entry contains a single Mail, and a flag telling whether the mail has already been read.
+ * Important: Two mail entries equality identity equality, i.e. two different entries containing the same mail are NOT equal.
  */
 public class MailEntry {
 	private final Mail mail;
-	private final long time;
+	private boolean isRead;
 	
 	/**
-	 * Create a new MailEntry for use upon receiving a new mail from some client to another.
+	 * Create a new MailEntry.
+	 * Mail is unread by default.
 	 * 
-	 * @param mail Received Mail item.
+	 * @param mail the mail item.
 	 */
 	public MailEntry(Mail mail) {
 		this.mail = mail;
-		this.time = System.currentTimeMillis();
 	}
 	
-	public MailEntry(Mail mail, long time) {
+	/**
+	 * Create a new MailEntry, specifying whether it is read or not.
+	 * @param mail
+	 * @param isRead
+	 */
+	public MailEntry(Mail mail, boolean isRead) {
 		this.mail = mail;
-		this.time = time;
+		this.isRead = false;
 	}
 	
-	public long time() {
-		return this.time;
+	/**
+	 * Get the mail held in this entry.
+	 * @return the mail held in this entry. 
+	 */
+	public Mail getMail() {
+		return mail;
 	}
 	
-	public String to() {
-		return this.mail.to;
+	/**
+	 * Get whether the mail is read or not.
+	 * @return a boolean specifying whether the mail is read or not. 
+	 */
+	public boolean getIsRead() {
+		return isRead;
 	}
 	
-	public String from() {
-		return this.mail.from;
+	/**
+	 * Marks the mail as read.
+	 */
+	public void markAsRead() {
+		isRead = true;
 	}
 	
-	public Mail mail() {
-		return this.mail;
+	/**
+	 * Return whether two mail entries are identically the same.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		return this == obj;
 	}
 }
