@@ -40,6 +40,12 @@ public class ClientConnection<Message> {
 	 * @return A new ClientConnection instance, initialized and ready for communication.
 	 */
 	public static <Message> ClientConnection<Message> create(String serverAddress, String clientAddress, Codec<Message> codec) {
+		if (serverAddress == null || serverAddress.isEmpty()
+				|| clientAddress == null || clientAddress.isEmpty()
+				|| codec == null) {
+			throw new IllegalArgumentException();
+		}
+		
 		Messenger messenger;
 		try {
 			messenger = new MessengerFactory().start(clientAddress);
@@ -88,7 +94,7 @@ public class ClientConnection<Message> {
 	 */
 	private ClientConnection(String serverAddress, Messenger messenger, Codec<Message> codec) {
 		if (serverAddress == null || messenger == null || codec == null) {
-			throw new NullPointerException();
+			throw new IllegalArgumentException();
 		}
 		
 		this.serverAddress = serverAddress;
@@ -101,7 +107,7 @@ public class ClientConnection<Message> {
 	 * 
 	 * @return this clients address.
 	 */
-	public String address() {
+	public String getAddress() {
 		return messenger.getAddress();
 	}
 	
@@ -110,7 +116,7 @@ public class ClientConnection<Message> {
 	 * 
 	 * @return Address of server through which this client communicates.
 	 */
-	public String server() {
+	public String getServerAddress() {
 		return serverAddress;
 	}
 	
@@ -122,7 +128,7 @@ public class ClientConnection<Message> {
 	public void send(Message msg) {
 		try {
 			MessageWithSender<Message> mws = new MessageWithSender<Message>(
-					msg, address());
+					msg, getAddress());
 			messenger.send(serverAddress, new MessageWithSenderCodec<Message>(
 					codec).encode(mws));
 		} catch (MessengerException e) {

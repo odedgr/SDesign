@@ -41,6 +41,9 @@ public class ServerConnection<Message> {
 	 * @return
 	 */
 	public static <Message> ServerConnection<Message> create(String address, Codec<Message> codec) {
+		if (address == null || address.isEmpty()) {
+			throw new IllegalArgumentException();
+		}
 		try {
 			Messenger messenger = new MessengerFactory().start(address);
 			return new ServerConnection<Message>(messenger, codec);
@@ -78,6 +81,10 @@ public class ServerConnection<Message> {
 	 * @param messenger the messenger to use to send and receive messages from the clients.
 	 */
 	private ServerConnection(Messenger messenger, Codec<Message> codec) {
+		if (messenger == null || codec == null) {
+			throw new IllegalArgumentException();
+		}
+		
 		this.messenger = messenger;
 		this.codec = codec;
 	}

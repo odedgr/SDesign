@@ -18,7 +18,7 @@ public class LibIntegrationTest {
 	ServerConnection<String> server;
 	
 	@Rule
-    public Timeout globalTimeout = Timeout.seconds(20);
+    public Timeout globalTimeout = Timeout.seconds(5);
 
 	@Before
 	public void setUp() throws Exception {
@@ -36,9 +36,9 @@ public class LibIntegrationTest {
 
 	@Test
 	public void ServerToClientReceivedInOrder() {
-		server.send(client1.address(), "one");
-		server.send(client2.address(), "two");
-		server.send(client1.address(), "three");
+		server.send(client1.getAddress(), "one");
+		server.send(client2.getAddress(), "two");
+		server.send(client1.getAddress(), "three");
 		
 		assertEquals("two", client2.receiveBlocking());
 		assertEquals("one", client1.receiveBlocking());
@@ -56,27 +56,27 @@ public class LibIntegrationTest {
 		{
 			MessageWithSender<String> mws = server.receiveBlocking();
 			assertEquals("one", mws.content);
-			assertEquals(client1.address(), mws.sender);
+			assertEquals(client1.getAddress(), mws.sender);
 		}
 		{
 			MessageWithSender<String> mws = server.receiveBlocking();
 			assertEquals("two", mws.content);
-			assertEquals(client1.address(), mws.sender);
+			assertEquals(client1.getAddress(), mws.sender);
 		}
 		{
 			MessageWithSender<String> mws = server.receiveBlocking();
 			assertEquals("three", mws.content);
-			assertEquals(client2.address(), mws.sender);
+			assertEquals(client2.getAddress(), mws.sender);
 		}
 		{
 			MessageWithSender<String> mws = server.receiveBlocking();
 			assertEquals("four", mws.content);
-			assertEquals(client1.address(), mws.sender);
+			assertEquals(client1.getAddress(), mws.sender);
 		}
 		{
 			MessageWithSender<String> mws = server.receiveBlocking();
 			assertEquals("five", mws.content);
-			assertEquals(client2.address(), mws.sender);
+			assertEquals(client2.getAddress(), mws.sender);
 		}
 	}
 	
@@ -103,7 +103,7 @@ public class LibIntegrationTest {
 	
 	@Test
 	public void ClientReceivesEmptyOptionalWhenNoPendingMessage() {
-		server.send(client1.address(), "one");
+		server.send(client1.getAddress(), "one");
 		{
 			// Client 2 got no message, so he receives an empty optional.
 			Optional<String> s = client2.receive();
@@ -126,12 +126,12 @@ public class LibIntegrationTest {
 		ServerConnection<StringMsg> str_server = ServerConnection.<StringMsg>create("local_server_address", new StringMsgCodec());
 		ClientConnection<StringMsg> str_client = ClientConnection.<StringMsg>create("local_client_address", "local_server_address", new StringMsgCodec());
 		
-		str_server.send(str_client.address(), new StringMsg("Hi!"));
+		str_server.send(str_client.getAddress(), new StringMsg("Hi!"));
 		assertEquals("Hi!", str_client.receiveBlocking().str);
 		
 		str_client.send(new StringMsg("What's up?"));
 		MessageWithSender<StringMsg> ms = str_server.receiveBlocking();
-		assertEquals(str_client.address(), ms.sender);
+		assertEquals(str_client.getAddress(), ms.sender);
 		assertEquals("What's up?", ms.content.str);
 	}
 
