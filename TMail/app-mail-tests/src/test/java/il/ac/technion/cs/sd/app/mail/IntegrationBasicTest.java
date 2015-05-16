@@ -70,25 +70,26 @@ public class IntegrationBasicTest {
 	@Test 
 	public void serversContentsRemainsAfterStopAndStart() throws InterruptedException {
 		// init - original server, and a client that sends some message
-		final ServerMailApplication s = new ServerMailApplication("s");
-		ClientMailApplication c = new ClientMailApplication(s.getAddress(), "c");
-		Thread st = startServerInThread(s);
+		final ServerMailApplication s1 = new ServerMailApplication("s");
+		s1.clean();
+		ClientMailApplication c = new ClientMailApplication(s1.getAddress(), "c");
+		final Thread st1 = startServerInThread(s1);
 		c.sendMail("other", "nothing");
 
 		// stop original server
-		s.stop();
-		st.stop();
+		s1.stop();
+		st1.stop();
 		
 		// create 2nd server with same address, load original's contents
 		final ServerMailApplication s2 = new ServerMailApplication("s");
-		st = startServerInThread(s2);
+		final Thread st2 = startServerInThread(s2);
 		
 		assertEquals("should have the original single message sent with previous server", 1, c.getAllMail(1).size());
 		
 		// cleanup
-		s2.start();
+		s2.stop();
 		s2.clean();
-		st.stop();
+		st2.stop();
 	}
 	
 	

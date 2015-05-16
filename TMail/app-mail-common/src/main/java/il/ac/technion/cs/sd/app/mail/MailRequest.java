@@ -18,6 +18,13 @@ public class MailRequest implements Serializable {
 
 	private static final long serialVersionUID = 8146517154357247722L;
 	
+	final private RequestType type;
+	final private Mail mail;  // Mail to send with SEND_MAIL request.
+	final private String otherClient;  // Other client to return correspondence, with GET_LAST_CORRESPONDANCE_WITH_CLIENT request.
+	final private int amount; // The amount of mail requested.
+	
+	private MailResponse response;
+	
 	public static enum RequestType {
 		SEND_MAIL,
 		GET_MAIL_SENT,
@@ -49,41 +56,28 @@ public class MailRequest implements Serializable {
 	public static MailRequest getContacts() {
 		return new MailRequest(RequestType.GET_CONTACTS);
 	}
-	
-	final private RequestType type;
-	final private Mail mail;  // Mail to send with SEND_MAIL request.
-	final private String otherClient;  // Other client to return correspondence, with GET_LAST_CORRESPONDANCE_WITH_CLIENT request.
-	final private int amount; // The amount of mail requested.
-	
-	private MailResponse response;
-	
 
 	private MailRequest(RequestType type, String otherClient) {
-		this.type = type;
-		this.mail = null;
-		this.amount = -1;
-		this.otherClient = otherClient;
+		this(type, -1, null, otherClient);
 	}
 	
 	private MailRequest(RequestType type, Mail mail) {
-		this.type = type;
-		this.mail = mail;
-		this.amount = -1;
-		this.otherClient = null;
+		this(type, -1, mail, null);
 	}
 	
 	private MailRequest(RequestType type, int amount) {
-		this.type = type;
-		this.mail = null;
-		this.amount = amount;
-		this.otherClient = null;
+		this(type, amount, null, null);
 	}
 	
 	private MailRequest(RequestType type) {
+		this(type, -1, null, null);
+	}
+	
+	private MailRequest(RequestType type, int amount, Mail mail,  String otherClient) {
 		this.type = type;
-		this.mail = null;
-		this.amount = -1;
-		this.otherClient = null;
+		this.amount = amount;
+		this.mail = mail;
+		this.otherClient = otherClient;
 	}
 	
 	public void attachResponse(MailResponse response) {
@@ -129,5 +123,36 @@ public class MailRequest implements Serializable {
 			throw new RuntimeException("This request has not been responded yet.");
 		}
 		return response;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		MailRequest other = (MailRequest) obj;
+		if (type == null) {
+			if (other.type != null)
+				return false;
+		} else if (!type.equals(other.type))
+			return false;
+		if (mail == null) {
+			if (other.mail != null)
+				return false;
+		} else if (!mail.equals(other.mail))
+			return false;
+		if (otherClient == null) {
+			if (other.otherClient != null)
+				return false;
+		} else if (!otherClient.equals(other.otherClient))
+			return false;
+		if (amount != other.amount) {
+			return false;
+		}
+		
+		return true;
 	}
 }

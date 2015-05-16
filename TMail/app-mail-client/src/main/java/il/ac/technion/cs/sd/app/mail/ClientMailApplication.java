@@ -20,7 +20,26 @@ public class ClientMailApplication {
 	 * @param username The user that will be sending and accepting the mail using this object
 	 */
 	public ClientMailApplication(String serverAddress, String username) {
-		connection = ClientConnection.<MailRequest>create(serverAddress, username);
+		this(ClientConnection.<MailRequest>create(serverAddress, username));
+	}
+	
+	
+	/**
+	 * Creates a client mail application that uses the given connection.
+	 * @param connection the connection to use.
+	 */
+	private ClientMailApplication(ClientConnection<MailRequest> connection) {
+		this.connection = connection;
+	}
+	
+	/**
+	 * Creates a client mail application that uses the given mock connection.
+	 * Used for testing purposes.
+	 * @param connection the mock connection to use.
+	 */
+	public static ClientMailApplication createWithMockConnection(
+			ClientConnection<MailRequest> connection) {
+				return new ClientMailApplication(connection);
 	}
 	
 	/**
