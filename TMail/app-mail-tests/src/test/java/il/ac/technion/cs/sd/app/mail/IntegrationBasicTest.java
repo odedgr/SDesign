@@ -2,15 +2,11 @@ package il.ac.technion.cs.sd.app.mail;
 
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
-@SuppressWarnings("deprecation")
 public class IntegrationBasicTest extends IntegrationTestBaseClass {
 
 	@Test
