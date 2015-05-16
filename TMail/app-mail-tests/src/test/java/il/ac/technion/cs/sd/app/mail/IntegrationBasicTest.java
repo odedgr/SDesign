@@ -16,6 +16,7 @@ public class IntegrationBasicTest {
 	private ClientMailApplication       testClient = null;
 	private List<ClientMailApplication>	clients	= new ArrayList<>();
 	private Thread serverThread;
+	private boolean useDefaultTesters = true;
 
 	private Thread startServerInThread(final ServerMailApplication s) throws InterruptedException {
 		Thread t = new Thread(() -> s.start());
@@ -34,18 +35,27 @@ public class IntegrationBasicTest {
 	
 	@Before
 	public void setUp() throws Exception {
+		useDefaultTesters = true;
 		serverThread = startServerInThread(server);
 		testClient = buildClient("tester");
 	}
 
 	@After
 	public void tearDown() throws Exception {
+		if (useDefaultTesters) {
+			shutDownDefaultTesters();
+		}
+	}
+
+	private void shutDownDefaultTesters() throws InterruptedException {
+		useDefaultTesters = false;
 		server.clean();
 		server.stop();
 		clients.forEach(c -> c.stop());
 		serverThread.stop();
+		Thread.sleep(20L);
 	}
-
+	
 	@Test
 	public void singleSendAndReceive() {
 		ClientMailApplication one = buildClient("one");
@@ -69,70 +79,95 @@ public class IntegrationBasicTest {
 	
 	@Test 
 	public void serversContentsRemainsAfterStopAndStart() throws InterruptedException {
+		shutDownDefaultTesters();
+		
 		// init - original server, and a client that sends some message
+		System.out.println("contents test - SERVER 1"); // TODO remove print
 		final ServerMailApplication s1 = new ServerMailApplication("s");
-		s1.clean();
-		ClientMailApplication c = new ClientMailApplication(s1.getAddress(), "c");
+		ClientMailApplication c = new ClientMailApplication(s1.getAddress(), "c15");
 		final Thread st1 = startServerInThread(s1);
 		c.sendMail("other", "nothing");
 
+		// give time to handle request
+		Thread.yield();
+		Thread.sleep(20L);
+		
 		// stop original server
 		s1.stop();
 		st1.stop();
+		
+		System.out.println("contents test - SERVER 2"); // TODO remove print
 		
 		// create 2nd server with same address, load original's contents
 		final ServerMailApplication s2 = new ServerMailApplication("s");
 		final Thread st2 = startServerInThread(s2);
 		
-		assertEquals("should have the original single message sent with previous server", 1, c.getAllMail(1).size());
+		List<Mail> results = c.getAllMail(1);
 		
 		// cleanup
-		s2.stop();
 		s2.clean();
+		s2.stop();
 		st2.stop();
+		
+		assertEquals("should have the original single message sent with previous server", 1, results.size());
+		
 	}
 	
 	
 	@Test 
 	public void serverPersistantContentsAreDeletedAfterClean() throws InterruptedException {
+		shutDownDefaultTesters();
+		
 		// init - original server, and a client that sends some message
 		final ServerMailApplication s = new ServerMailApplication("s");
-		ClientMailApplication c = new ClientMailApplication(s.getAddress(), "c");
+		ClientMailApplication c = new ClientMailApplication(s.getAddress(), "c12");
 		Thread st = startServerInThread(s);
 		c.sendMail("other", "nothing");
 
+		// give time to handle request
+		Thread.yield();
+		Thread.sleep(20L);
+		
 		// stop original server
-		s.stop();
 		s.clean();
+		s.stop();
 		st.stop();
 		
 		// create 2nd server with same address, load original's contents
 		final ServerMailApplication s2 = new ServerMailApplication("s");
 		st = startServerInThread(s2);
 		
-		assertEquals("should have no messages sent with previous server", 0, c.getAllMail(1).size());
+		List<Mail> results = c.getAllMail(1);
 		
 		// cleanup
-		s2.start();
 		s2.clean();
+		s2.stop();
 		st.stop();
+		
+		assertEquals("should have no messages sent with previous server", 0, results.size());
 	}
 	
 	@Test 
 	public void serverRuntimeContentsAreDeletedAfterClean() throws InterruptedException {
+		shutDownDefaultTesters();
+		
 		final ServerMailApplication s = new ServerMailApplication("s");
-		ClientMailApplication c = new ClientMailApplication(s.getAddress(), "c");
+		ClientMailApplication c = new ClientMailApplication(s.getAddress(), "c13");
 		Thread st = startServerInThread(s);
 		c.sendMail("whoever", "whatever");
 
+		// give time to handle request
+		Thread.yield();
+		Thread.sleep(20L);
+		
 		// clean server's contents
 		s.clean();
-		assertEquals("should have no messages after server clean", 0, c.getAllMail(1).size());
+		List<Mail> results = c.getAllMail(1);
 		
 		s.stop();
 		st.stop();
+		
+		assertEquals("should have no messages after server clean", 0, results.size());
 	}
-	
-	
 
 }
