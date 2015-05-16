@@ -54,6 +54,7 @@ public class IntegrationBasicTest {
 		server.stop();
 		clients.forEach(c -> c.stop());
 		serverThread.stop();
+		testClient.stop();
 		Thread.sleep(5L);
 	}
 	
