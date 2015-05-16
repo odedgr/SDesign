@@ -19,10 +19,7 @@ public class FileDataSaverTest {
 	@Before
 	public void setUp() throws Exception {
 		fds_str = new FileDataSaver<String>("StringFileDataSaverTestFile");
-		fds_str.clean();
-		
 		fds_list = new FileDataSaver<List<Integer>>("ListFileDataSaverTestFile");
-		fds_list.clean();
 	}
 
 	@After
@@ -31,28 +28,39 @@ public class FileDataSaverTest {
 		fds_list.clean();
 	}
 
-	// TODO: Split to several test functions.
-	// TODO: Split to 2 test for 2 fds types.
 	@Test
-	public void test() {
+	public void verifyEmptyAtFirst() {
 		assertFalse(fds_str.load().isPresent());
-		assertFalse(fds_str.load().isPresent());
+	}
+	
+	@Test
+	public void basicSaveLoad() {
 		fds_str.save("Hello!");		
 		assertTrue(fds_str.load().isPresent());
 		assertEquals("Hello!", fds_str.load().get());
+	}
+	
+	@Test
+	public void saveAndReSave() {
+		fds_str.save("Hello!");		
+		assertTrue(fds_str.load().isPresent());
 		assertEquals("Hello!", fds_str.load().get());
 		fds_str.save("Hi");
 		assertTrue(fds_str.load().isPresent());
 		assertEquals("Hi", fds_str.load().get());
+	}
+	
+	@Test
+	public void saveAndCleanAndResave() {
+		fds_str.save("Hello!");		
 		fds_str.clean();
-		assertFalse(fds_str.load().isPresent());
 		fds_str.save("Bye");
 		assertTrue(fds_str.load().isPresent());
 		assertEquals("Bye", fds_str.load().get());
 	}
 	
 	@Test
-	public void testList() {
+	public void testWithList() {
 		assertFalse(fds_list.load().isPresent());
 		assertFalse(fds_list.load().isPresent());
 		ArrayList<Integer> arr = new ArrayList<Integer>();

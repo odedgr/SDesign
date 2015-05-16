@@ -10,8 +10,6 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Optional;
 
-// TODO: break into several tests.
-
 /**
  * An interface for saving and loading persistent data to a file. The concrete
  * data instance sent to this class must implement the Serializable interface.

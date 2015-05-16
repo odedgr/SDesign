@@ -3,22 +3,30 @@ package il.ac.technion.cs.sd.app.mail;
 import java.io.Serializable;
 import java.util.List;
 
-// TODO: go over javadocs.
-
+/**
+ * A response that can be attached to the MailRequest. 
+ */
 public class MailResponse implements Serializable {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 4588924529947508861L;
 	
 	private final List<Mail> mailList;
 	private final List<String> contactsList;
 	
+	/**
+	 * Create a response containing a list of mail.
+	 * @param mailList the mail list to add to the response.
+	 * @return a response containing a list of mail.
+	 */
 	public static MailResponse withMailResults(List<Mail> mailList) {
 		return new MailResponse(mailList, null);
 	}
 	
+	/**
+	 * Create a response containing a list of contacts.
+	 * @param contactsList the contact list.
+	 * @return the response with the contact list.
+	 */
 	public static MailResponse withContactsResults(List<String> contactsList) {
 		return new MailResponse(null, contactsList);
 	}
@@ -29,10 +37,8 @@ public class MailResponse implements Serializable {
 	}
 	
 	/**
-	 * Get the mail list in the envelope. Returned list will be empty if this envelope is of an incorrect type (e.g: not the
-	 * response for a task that yields results as a list of mails) or if there were no matching results.
-	 * 
-	 * @return The list of mails contained in this Envelope.
+	 * Get the mail list in the response. An exception is thrown in case there is no mail attached. 
+	 * @return The list of mails contained in this response.
 	 */
 	public List<Mail> getMailResults() {
 		if (mailList == null) {
@@ -42,9 +48,7 @@ public class MailResponse implements Serializable {
 	}
 	
 	/**
-	 * Get the contacts list in the envelope. Returned list will be empty if this envelope is of an incorrect type (e.g: not the
-	 * response for a contacts list request) or if there were no matching results.
-	 * 
+	 * Get the contacts list in the response. An exception is thrown in case there are no contacts attached.
 	 * @return The list of contacts contained in this Envelope.
 	 */
 	public List<String> getContactsResults() {
