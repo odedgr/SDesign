@@ -22,7 +22,7 @@ public class ServerMailApplication {
 	private ServerConnection<MailRequest> connection;
 	
 	private List<MailEntry> history;
-	private DataSaver<List<MailEntry>> dataSaver;  // TODO: come up with a better name?
+	private DataSaver<List<MailEntry>> dataSaver;  
 
 	// loaded / stored to independent db
 	private Map<String, MailBox> mailboxes = new HashMap<String, MailBox>(); // <client address : client mailbox>
@@ -59,11 +59,9 @@ public class ServerMailApplication {
 	 */
 	public void start() {
 		loadData();
-		System.out.println("DEBUG SERVER APP server \"" + address + "\" finished loading persistent data"); // TODO remove print
 		connection = ServerConnection.<MailRequest>create(address);
-		System.out.println("DEBUG SERVER APP server \"" + address + "\" created it's connection"); // TODO remove print
+		
 		while (true) {
-			System.out.println("DEBUG SERVER APP server \"" + address + "\" waiting for incoming request"); // TODO remove print
 			MessageWithSender<MailRequest> signed_request = connection.receiveBlocking();
 			String client = signed_request.sender;
 			MailRequest request = signed_request.content;
@@ -73,7 +71,6 @@ public class ServerMailApplication {
 				// Send the request with the attached response back to the client.
 				connection.send(client, request);
 			}
-			System.out.println("DEBUG SERVER APP server \"" + address + "\" finished handling request"); // TODO remove print
 		}
 	}
 	
@@ -82,7 +79,6 @@ public class ServerMailApplication {
 	 * any system resources (e.g., messengers).
 	 */
 	public void stop() {
-		System.out.println("server \"" + address + "\" stopping"); // TODO remove print
 		saveData();
 		if (null != connection) {
 			connection.kill();
@@ -228,7 +224,6 @@ public class ServerMailApplication {
 	 * Store all of this server's current data (mailboxes and their contents) into a file. 
 	 */
 	private void saveData() {
-		System.out.println("DEBUG saving data of server \"" + this.address + "\" (total " + history.size() + " entries)"); // TODO remove print
 		dataSaver.save(history);
 	}
 	
@@ -244,13 +239,9 @@ public class ServerMailApplication {
 			return;
 		}
 		
-		System.out.println("DEBUG - read " + loaded_history.get().size() + " entries in server \"" + this.address + "\" from file"); // TODO remove print
-		
 		for (MailEntry entry : loaded_history.get()) {
 			addNewMailEntry(entry);
 		}
-		
-		System.out.println("DEBUG - loaded " + loaded_history.get().size() + " entries to server \"" + this.address + "\""); // TODO remove print
 	}
 	
 	private MailBox getMailBoxOfClient(String client) {
