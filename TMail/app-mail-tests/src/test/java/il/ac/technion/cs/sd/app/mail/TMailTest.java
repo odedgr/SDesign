@@ -35,6 +35,7 @@ public class TMailTest {
 		server.stop();
 		server.clean();
 		clients.forEach(x -> x.stop());
+		clients.clear();
 		serverThread.stop();
 	}
 	

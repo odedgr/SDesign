@@ -13,7 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class IntegerationReceivedMailTest {
-
+	private final String testClientName = "receivedTester";
 	private ServerMailApplication		server	= new ServerMailApplication("server");
 	private ClientMailApplication       testClient = null;
 	private List<ClientMailApplication>	clients	= new ArrayList<>();
@@ -31,7 +31,7 @@ public class IntegerationReceivedMailTest {
 		serverThread.start();
 		Thread.yield(); 
 		Thread.sleep(10L);
-		testClient = buildClient("tester");
+		testClient = buildClient(testClientName);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -40,14 +40,15 @@ public class IntegerationReceivedMailTest {
 		server.clean();
 		server.stop();
 		clients.forEach(c -> c.stop());
+		clients.clear();
 		serverThread.stop();
 	}
 
 	@Test
 	public void receivedMailQueryMarksAsRead() {
 		ClientMailApplication otherClient = buildClient("other");
-		otherClient.sendMail("tester", "1");
-		otherClient.sendMail("tester", "2");
+		otherClient.sendMail(testClientName, "1");
+		otherClient.sendMail(testClientName, "2");
 		testClient.getIncomingMail(1);
 		assertEquals("second mail should have been marked as read", 1, testClient.getNewMail().size());
 	}
@@ -56,9 +57,9 @@ public class IntegerationReceivedMailTest {
 	public void receivedMailQueryIsOrderedFromNewToOld() {
 		ClientMailApplication otherClient = buildClient("other");
 		
-		otherClient.sendMail("tester", "oldest");
-		otherClient.sendMail("tester", "middle");
-		otherClient.sendMail("tester", "newest");
+		otherClient.sendMail(testClientName, "oldest");
+		otherClient.sendMail(testClientName, "middle");
+		otherClient.sendMail(testClientName, "newest");
 		
 		List<Mail> incomingMail = testClient.getIncomingMail(3);
 		
@@ -71,21 +72,21 @@ public class IntegerationReceivedMailTest {
 	public void receivedMailQueryContainsOnlyReceived() {
 		ClientMailApplication otherClient = buildClient("other");
 		
-		otherClient.sendMail("tester", "ping");
+		otherClient.sendMail(testClientName, "ping");
 		testClient.sendMail("other", "pong");
 		
 		List<Mail> incomingMail = testClient.getIncomingMail(2);
 		assertEquals("testClient only received a single mail", 1, incomingMail.size());
-		assertTrue("testClient should have received otherClient's mail", incomingMail.contains(new Mail("other", "tester", "ping")));
-		assertTrue("testClient should NOT have received his own mail", !incomingMail.contains(new Mail("tester", "other", "pong")));
+		assertTrue("testClient should have received otherClient's mail", incomingMail.contains(new Mail("other", testClientName, "ping")));
+		assertTrue("testClient should NOT have received his own mail", !incomingMail.contains(new Mail(testClientName, "other", "pong")));
 	}
 	
 	@Test
 	public void receivedMailQueryReturnsNoMoreThanAskedItems() {
 		ClientMailApplication otherClient = buildClient("other");
 		
-		otherClient.sendMail("tester", "bla bla");
-		otherClient.sendMail("tester", "yada yada");
+		otherClient.sendMail(testClientName, "bla bla");
+		otherClient.sendMail(testClientName, "yada yada");
 		
 		assertEquals("only asked for 1 item at most", 1, testClient.getIncomingMail(1).size());
 	}
@@ -94,8 +95,8 @@ public class IntegerationReceivedMailTest {
 	public void receivedMailQueryReturnsAmountExistingLowerThanAsked() {
 		ClientMailApplication otherClient = buildClient("other");
 		
-		otherClient.sendMail("tester", "bla bla");
-		otherClient.sendMail("tester", "yada yada");
+		otherClient.sendMail(testClientName, "bla bla");
+		otherClient.sendMail(testClientName, "yada yada");
 		
 		assertEquals("only 2 items exist", 2, testClient.getIncomingMail(3).size());
 	}
@@ -110,9 +111,9 @@ public class IntegerationReceivedMailTest {
 		ClientMailApplication otherClient = buildClient("other");
 		
 		List<Mail> sentMails = Arrays.asList(
-				new Mail("other", "tester", "bla bla"),
-				new Mail("other", "tester", "yada yada"),
-				new Mail("other", "tester", "third time's a charm"));
+				new Mail("other", testClientName, "bla bla"),
+				new Mail("other", testClientName, "yada yada"),
+				new Mail("other", testClientName, "third time's a charm"));
 		
 		for (Mail mail : sentMails) {
 			otherClient.sendMail(mail.to, mail.content);

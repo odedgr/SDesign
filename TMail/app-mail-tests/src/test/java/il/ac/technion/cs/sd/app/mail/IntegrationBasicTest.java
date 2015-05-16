@@ -13,6 +13,7 @@ import org.junit.Test;
 @SuppressWarnings("deprecation")
 public class IntegrationBasicTest {
 
+	private final String testClientName = "integrationBasicTester";
 	private ServerMailApplication		server	= new ServerMailApplication("server");
 	private ClientMailApplication       testClient = null;
 	private List<ClientMailApplication>	clients	= new ArrayList<>();
@@ -38,7 +39,7 @@ public class IntegrationBasicTest {
 	public void setUp() throws Exception {
 		useDefaultTesters = true;
 		serverThread = startServerInThread(server);
-		testClient = buildClient("tester");
+		testClient = buildClient(testClientName);
 	}
 
 	@After
@@ -50,11 +51,12 @@ public class IntegrationBasicTest {
 
 	private void shutDownDefaultTesters() throws InterruptedException {
 		useDefaultTesters = false;
+		Thread.sleep(5L);
 		server.clean();
 		server.stop();
 		clients.forEach(c -> c.stop());
+		clients.clear();
 		serverThread.stop();
-		testClient.stop();
 		Thread.sleep(5L);
 	}
 	
@@ -84,7 +86,7 @@ public class IntegrationBasicTest {
 		shutDownDefaultTesters();
 		
 		// init - original server, and a client that sends some message
-		final ServerMailApplication s1 = new ServerMailApplication("s");
+		final ServerMailApplication s1 = new ServerMailApplication("ps");
 		ClientMailApplication c = new ClientMailApplication(s1.getAddress(), "c15");
 		final Thread st1 = startServerInThread(s1);
 		c.sendMail("other", "nothing");
@@ -98,7 +100,7 @@ public class IntegrationBasicTest {
 		st1.stop();
 		
 		// create 2nd server with same address, load original's contents
-		final ServerMailApplication s2 = new ServerMailApplication("s");
+		final ServerMailApplication s2 = new ServerMailApplication("ps");
 		final Thread st2 = startServerInThread(s2);
 		
 		List<Mail> results = c.getAllMail(1);

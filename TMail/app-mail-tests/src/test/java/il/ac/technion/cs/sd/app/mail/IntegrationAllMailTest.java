@@ -13,7 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class IntegrationAllMailTest {
-
+	private final String testClientName = "allMailTester";
 	private ServerMailApplication		server	= new ServerMailApplication("server");
 	private ClientMailApplication       testClient = null;
 	private List<ClientMailApplication>	clients	= new ArrayList<>();
@@ -31,7 +31,7 @@ public class IntegrationAllMailTest {
 		serverThread.start();
 		Thread.yield(); 
 		Thread.sleep(10L);
-		testClient = buildClient("tester");
+		testClient = buildClient(testClientName);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -40,6 +40,7 @@ public class IntegrationAllMailTest {
 		server.clean();
 		server.stop();
 		clients.forEach(c -> c.stop());
+		clients.clear();
 		serverThread.stop();
 	}
 
@@ -47,8 +48,8 @@ public class IntegrationAllMailTest {
 	public void allMailQueryMarksAsRead() {
 		ClientMailApplication otherClient = buildClient("other");
 		
-		otherClient.sendMail("tester", "1");
-		otherClient.sendMail("tester", "2");
+		otherClient.sendMail(testClientName, "1");
+		otherClient.sendMail(testClientName, "2");
 		testClient.sendMail("other", "back at'ya");
 		testClient.getAllMail(2);
 		
@@ -60,9 +61,9 @@ public class IntegrationAllMailTest {
 		ClientMailApplication otherClient = buildClient("other");
 		
 		List<Mail> mails = Arrays.asList(
-				new Mail("other", "tester", "oldest"),
-				new Mail("other", "tester", "slightly used"),
-				new Mail("other", "tester", "brand new"));
+				new Mail("other", testClientName, "oldest"),
+				new Mail("other", testClientName, "slightly used"),
+				new Mail("other", testClientName, "brand new"));
 		
 		for (Mail mail : mails) {
 			otherClient.sendMail(mail.to, mail.content);
@@ -78,8 +79,8 @@ public class IntegrationAllMailTest {
 		ClientMailApplication otherClient = buildClient("other");
 		
 		List<Mail> mails = Arrays.asList(
-				new Mail("other", "tester", "bla bla"),
-				new Mail("tester", "other", "yada yada"));
+				new Mail("other", testClientName, "bla bla"),
+				new Mail(testClientName, "other", "yada yada"));
 		
 		otherClient.sendMail(mails.get(0).to, mails.get(0).content);
 		testClient.sendMail(mails.get(1).to, mails.get(1).content);
@@ -95,7 +96,7 @@ public class IntegrationAllMailTest {
 		ClientMailApplication otherClient = buildClient("other");
 		
 		for (int i = 0; i < smallPositiveAmount; ++i) {
-			otherClient.sendMail("tester", "Boo!");
+			otherClient.sendMail(testClientName, "Boo!");
 		}
 		
 		int smallerAmount = smallPositiveAmount - 1;
@@ -106,8 +107,8 @@ public class IntegrationAllMailTest {
 	public void allMailQueryReturnsAmountExistingLowerThanAsked() {
 		ClientMailApplication otherClient = buildClient("other");
 		
-		otherClient.sendMail("tester", "bla bla");
-		otherClient.sendMail("tester", "yada yada");
+		otherClient.sendMail(testClientName, "bla bla");
+		otherClient.sendMail(testClientName, "yada yada");
 		
 		assertEquals("only 2 items exist", 2, testClient.getAllMail(3).size());
 	}

@@ -14,6 +14,7 @@ import org.junit.Test;
 
 public class IntegrationCorrespondencelTest {
 
+	private final String testClientName = "correspondenceTester";
 	private ServerMailApplication		server	= new ServerMailApplication("server");
 	private ClientMailApplication       testClient = null;
 	private List<ClientMailApplication>	clients	= new ArrayList<>();
@@ -31,7 +32,7 @@ public class IntegrationCorrespondencelTest {
 		serverThread.start();
 		Thread.yield(); 
 		Thread.sleep(10L);
-		testClient = buildClient("tester");
+		testClient = buildClient(testClientName);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -40,6 +41,7 @@ public class IntegrationCorrespondencelTest {
 		server.clean();
 		server.stop();
 		clients.forEach(c -> c.stop());
+		clients.clear();
 		serverThread.stop();
 	}
 	
@@ -52,10 +54,10 @@ public class IntegrationCorrespondencelTest {
 		ClientMailApplication otherClient = buildClient("other");
 
 		List<Mail> mails = Arrays.asList(
-				new Mail("tester", "other", "ping"),
-				new Mail("other", "tester", "pong"),
-				new Mail("tester", "other", "bang"),
-				new Mail("other", "tester", "bong"));
+				new Mail(testClientName, "other", "ping"),
+				new Mail("other", testClientName, "pong"),
+				new Mail(testClientName, "other", "bang"),
+				new Mail("other", testClientName, "bong"));
 		
 		testClient.sendMail(mails.get(0).to, mails.get(0).content);
 		otherClient.sendMail(mails.get(1).to, mails.get(1).content);
@@ -81,7 +83,7 @@ public class IntegrationCorrespondencelTest {
 	public void correspondenceQueryMarksAsRead() {
 		ClientMailApplication otherClient = buildClient("other");
 
-		otherClient.sendMail("tester", "what?");
+		otherClient.sendMail(testClientName, "what?");
 		testClient.sendMail("other", "nothing...");
 		
 		testClient.getCorrespondences("other", 1);
@@ -107,15 +109,19 @@ public class IntegrationCorrespondencelTest {
 	
 	@Test
 	public void correspondenceQueryReturnsAmountExistingLowerThanAsked() {
-		List<Mail> mails = Arrays.asList(
-				new Mail("tester", "other", "oldest"),
-				new Mail("other", "tester", "older"),
-				new Mail("tester", "other", "newer"),
-				new Mail("other", "tester", "newest"));
+		final String otherName = "other";
+		ClientMailApplication other = buildClient(otherName);
 		
-		for (Mail mail : mails) { // don't care about who sent to whom
-			testClient.sendMail(mail.to, mail.content);
-		}
+		List<Mail> mails = Arrays.asList(
+				new Mail(testClientName, otherName, "oldest"),
+				new Mail(otherName, testClientName, "older"),
+				new Mail(testClientName, otherName, "newer"),
+				new Mail(otherName, testClientName, "newest"));
+		
+		testClient.sendMail(otherName, mails.get(0).content);
+		other.sendMail(testClientName, mails.get(1).content);
+		testClient.sendMail(otherName, mails.get(2).content);
+		other.sendMail(testClientName, mails.get(3).content);
 
 		assertEquals("should only get a list the size requested", mails.size(), testClient.getCorrespondences("other", mails.size() + 1).size());
 	}
@@ -143,10 +149,10 @@ public class IntegrationCorrespondencelTest {
 		alice.sendMail("bob", "why? she doesn't know anything.");
 		bob.sendMail("alice", "ok...");
 		
-		assertEquals(7, alice.getCorrespondences("bob", 7));
-		assertEquals(7, bob.getCorrespondences("alice", 7));
-		assertEquals(5, bob.getCorrespondences("eve", 5));
-		assertEquals(4, alice.getCorrespondences("eve", 4));
+		assertEquals(7, alice.getCorrespondences("bob", 7).size());
+		assertEquals(7, bob.getCorrespondences("alice", 7).size());
+		assertEquals(5, bob.getCorrespondences("eve", 5).size());
+		assertEquals(4, alice.getCorrespondences("eve", 4).size());
 	}
 
 }

@@ -12,7 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class IntegrationSentMailTest {
-
+	private final String testClientName = "sentTester";
 	private ServerMailApplication		server	= new ServerMailApplication("server");
 	private ClientMailApplication       testClient = null;
 	private List<ClientMailApplication>	clients	= new ArrayList<>();
@@ -30,7 +30,7 @@ public class IntegrationSentMailTest {
 		serverThread.start();
 		Thread.yield(); 
 		Thread.sleep(10L);
-		testClient = buildClient("tester");
+		testClient = buildClient(testClientName);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -39,15 +39,16 @@ public class IntegrationSentMailTest {
 		server.clean();
 		server.stop();
 		clients.forEach(c -> c.stop());
+		clients.clear();
 		serverThread.stop();
 	}
 
 	@Test
 	public void sentMailQueryIsOrderedFromNewToOld() {
 		List<Mail> mails = Arrays.asList(
-				new Mail("tester", "other", "oldest"),
-				new Mail("tester", "other", "slightly used"),
-				new Mail("tester", "other", "brand new"));
+				new Mail(testClientName, "other", "oldest"),
+				new Mail(testClientName, "other", "slightly used"),
+				new Mail(testClientName, "other", "brand new"));
 		
 		for (Mail mail : mails) {
 			testClient.sendMail(mail.to, mail.content);
@@ -61,14 +62,14 @@ public class IntegrationSentMailTest {
 	@Test
 	public void sendMailQueryContainsOnlySent() {
 		testClient.sendMail("other", "testing, testing...");
-		buildClient("other").sendMail("tester", "heard you just fine");
+		buildClient("other").sendMail(testClientName, "heard you just fine");
 		testClient.sendMail("other", "what's up?");
 		
 		List<Mail> sent = testClient.getSentMails(2);
 		
 		assertEquals("testClient sent out exactly 2 mails", 2, sent.size());
-		assertTrue(sent.contains(new Mail("tester", "other", "testing, testing...")));
-		assertTrue(sent.contains(new Mail("tester", "other", "what's up?")));
+		assertTrue(sent.contains(new Mail(testClientName, "other", "testing, testing...")));
+		assertTrue(sent.contains(new Mail(testClientName, "other", "what's up?")));
 	}
 	
 	@Test
@@ -90,7 +91,7 @@ public class IntegrationSentMailTest {
 	@Test
 	public void sentMailQueryReturnsEmptyWhenNonSent() {
 		assertTrue("should get an empty list", testClient.getSentMails(1).isEmpty());
-		buildClient("other").sendMail("tester", "hello");
+		buildClient("other").sendMail(testClientName, "hello");
 		assertTrue("should get an empty list", testClient.getSentMails(1).isEmpty());
 	}
 	

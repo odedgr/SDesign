@@ -11,7 +11,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class IntegrationUnreadMailTest {
-
+	
+	private final String testClientName = "unreadTester";
 	private ServerMailApplication		server	= new ServerMailApplication("server");
 	private ClientMailApplication       testClient = null;
 	private List<ClientMailApplication>	clients	= new ArrayList<>();
@@ -29,7 +30,7 @@ public class IntegrationUnreadMailTest {
 		serverThread.start();
 		Thread.yield(); 
 		Thread.sleep(10L);
-		testClient = buildClient("tester");
+		testClient = buildClient(testClientName);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -38,6 +39,7 @@ public class IntegrationUnreadMailTest {
 		server.clean();
 		server.stop();
 		clients.forEach(c -> c.stop());
+		clients.clear();
 		serverThread.stop();
 	}
 	
@@ -65,21 +67,20 @@ public class IntegrationUnreadMailTest {
 	@Test
 	public void unreadQueryMarksAsRead() {
 		ClientMailApplication otherClient = buildClient("other");
-		otherClient.sendMail("tester", "once");
-		otherClient.sendMail("tester", "twice");
+		otherClient.sendMail(testClientName, "once");
+		otherClient.sendMail(testClientName, "twice");
 		
 		testClient.getNewMail();
 		assertEquals("upon second call - no mail should be unread", 0, testClient.getNewMail().size());
-	
 	}
 	
 	@Test
 	public void unreadQueryIsOrderedFromNewToOld() {
 		ClientMailApplication otherClient = buildClient("other");
 		
-		otherClient.sendMail("tester", "oldest");
-		otherClient.sendMail("tester", "middle");
-		otherClient.sendMail("tester", "newest");
+		otherClient.sendMail(testClientName, "oldest");
+		otherClient.sendMail(testClientName, "middle");
+		otherClient.sendMail(testClientName, "newest");
 		
 		List<Mail> newMail = testClient.getNewMail();
 		
@@ -91,9 +92,9 @@ public class IntegrationUnreadMailTest {
 	@Test
 	public void consecutiveCallsReturnDifferentResults() {
 		ClientMailApplication otherClient = buildClient("other");
-		otherClient.sendMail("tester", "once");
+		otherClient.sendMail(testClientName, "once");
 		assertEquals("once", testClient.getNewMail().get(0).content);
-		otherClient.sendMail("tester", "twice");
+		otherClient.sendMail(testClientName, "twice");
 		assertEquals("twice", testClient.getNewMail().get(0).content);
 		assertTrue(testClient.getNewMail().isEmpty());
 	}
