@@ -11,55 +11,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 @SuppressWarnings("deprecation")
-public class IntegrationBasicTest {
+public class IntegrationBasicTest extends IntegrationTestBaseClass {
 
-	private final String testClientName = "integrationBasicTester";
-	private ServerMailApplication		server	= new ServerMailApplication("server");
-	private ClientMailApplication       testClient = null;
-	private List<ClientMailApplication>	clients	= new ArrayList<>();
-	private Thread serverThread;
-	private boolean useDefaultTesters = true;
-
-	private Thread startServerInThread(final ServerMailApplication s) throws InterruptedException {
-		Thread t = new Thread(() -> s.start());
-		t.start();
-		Thread.yield();
-		Thread.sleep(10L);
-		
-		return t;
-	}
-	
-	private ClientMailApplication buildClient(String login) {
-		ClientMailApplication $ = new ClientMailApplication(server.getAddress(), login);
-		clients.add($);
-		return $;
-	}
-	
-	@Before
-	public void setUp() throws Exception {
-		useDefaultTesters = true;
-		serverThread = startServerInThread(server);
-		testClient = buildClient(testClientName);
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		if (useDefaultTesters) {
-			shutDownDefaultTesters();
-		}
-	}
-
-	private void shutDownDefaultTesters() throws InterruptedException {
-		useDefaultTesters = false;
-		Thread.sleep(5L);
-		server.clean();
-		server.stop();
-		clients.forEach(c -> c.stop());
-		clients.clear();
-		serverThread.stop();
-		Thread.sleep(5L);
-	}
-	
 	@Test
 	public void singleSendAndReceive() {
 		ClientMailApplication one = buildClient("one");
@@ -83,93 +36,35 @@ public class IntegrationBasicTest {
 	
 	@Test 
 	public void serversContentsRemainsAfterStopAndStart() throws InterruptedException {
-		shutDownDefaultTesters();
-		
-		// init - original server, and a client that sends some message
-		final ServerMailApplication s1 = new ServerMailApplication("ps");
-		ClientMailApplication c = new ClientMailApplication(s1.getAddress(), "c15");
-		final Thread st1 = startServerInThread(s1);
+		ClientMailApplication c = buildClient("c");
 		c.sendMail("other", "nothing");
-
-		// give time to handle request
-		Thread.yield();
-		Thread.sleep(10L);
 		
-		// stop original server
-		s1.stop();
-		st1.stop();
-		
-		// create 2nd server with same address, load original's contents
-		final ServerMailApplication s2 = new ServerMailApplication("ps");
-		final Thread st2 = startServerInThread(s2);
+		restartServer();
 		
 		List<Mail> results = c.getAllMail(1);
-		
-		// cleanup
-		s2.clean();
-		s2.stop();
-		st2.stop();
-		c.stop();
-		
 		assertEquals("should have the original single message sent with previous server", 1, results.size());
 	}
 	
 	
 	@Test 
 	public void serverPersistantContentsAreDeletedAfterClean() throws InterruptedException {
-		shutDownDefaultTesters();
-		
-		// init - original server, and a client that sends some message
-		final ServerMailApplication s = new ServerMailApplication("s");
-		ClientMailApplication c = new ClientMailApplication(s.getAddress(), "c12");
-		Thread st = startServerInThread(s);
+		ClientMailApplication c = buildClient("c12");
 		c.sendMail("other", "nothing");
 
-		// give time to handle request
-		Thread.yield();
-		Thread.sleep(10L);
-		
-		// stop original server
-		s.clean();
-		s.stop();
-		st.stop();
-		
-		// create 2nd server with same address, load original's contents
-		final ServerMailApplication s2 = new ServerMailApplication("s");
-		st = startServerInThread(s2);
+		restartServer();
+		cleanServer();
 		
 		List<Mail> results = c.getAllMail(1);
-		
-		// cleanup
-		s2.clean();
-		s2.stop();
-		st.stop();
-		c.stop();
-		
 		assertEquals("should have no messages sent with previous server", 0, results.size());
 	}
 	
 	@Test 
 	public void serverRuntimeContentsAreDeletedAfterClean() throws InterruptedException {
-		shutDownDefaultTesters();
-		
-		final ServerMailApplication s = new ServerMailApplication("s");
-		ClientMailApplication c = new ClientMailApplication(s.getAddress(), "c13");
-		Thread st = startServerInThread(s);
+		ClientMailApplication c = buildClient("c13");
 		c.sendMail("whoever", "whatever");
 
-		// give time to handle request
-		Thread.yield();
-		Thread.sleep(10L);
-		
-		// clean server's contents
-		s.clean();
+		cleanServer();
 		List<Mail> results = c.getAllMail(1);
-		
-		s.stop();
-		st.stop();
-		c.stop();
-		
 		assertEquals("should have no messages after server clean", 0, results.size());
 	}
 	
@@ -191,50 +86,28 @@ public class IntegrationBasicTest {
 	
 	@Test 
 	public void serverDataIsPersistentUnderManyRestarts() throws InterruptedException {
-		shutDownDefaultTesters();
 		final int iterations = 5;
 		
-		ServerMailApplication s = new ServerMailApplication("s");
-		ClientMailApplication sender = new ClientMailApplication(s.getAddress(), "sender");
-		ClientMailApplication receiver = new ClientMailApplication(s.getAddress(), "receiver");
-		Thread st = startServerInThread(s);
+		ClientMailApplication sender = buildClient("sender");
+		ClientMailApplication receiver = buildClient("receiver");
 		sender.sendMail("receiver", "whatever");
 
-		// give time to handle request
-		Thread.yield();
-		Thread.sleep(10L);
-		
 		for (int i = 0; i < iterations; ++i) {
-			s.stop();
-			st.stop();
-			Thread.sleep(5L);
-			
-			s = new ServerMailApplication("s");
-			st = startServerInThread(s);
-			
-			Thread.sleep(5L);
+			restartServer();
 			assertEquals("the receiver should always have a single mail", 1, receiver.getIncomingMail(5).size());
 			assertEquals("the sender should always have a single mail", 1, sender.getSentMails(5).size());
 		}
-
-		// clean up
-		s.clean();
-		s.stop();
-		st.stop();
-		
-		sender.stop();
-		receiver.stop();
 	}
 	
 	@Test
 	public void contactsAreUnique() {
-		testClient.sendMail("one", "bla");
-		testClient.sendMail("two", "bla");
-		testClient.sendMail("one", "yada");
-		testClient.sendMail("two", "yada");
+		ClientMailApplication c = buildClient("Moti");
+		c.sendMail("one", "bla");
+		c.sendMail("two", "bla");
+		c.sendMail("one", "yada");
+		c.sendMail("two", "yada");
 		
-		assertEquals("wrote to exactly 2 other clients", 2, testClient.getContacts(5).size());
-		assertTrue("contacts should include exactly 'one' and 'two'", testClient.getContacts(5).containsAll(Arrays.asList("one", "two")));
+		assertEquals("wrote to exactly 2 other clients", 2, c.getContacts(5).size());
+		assertTrue("contacts should include exactly 'one' and 'two'", c.getContacts(5).containsAll(Arrays.asList("one", "two")));
 	}
-
 }
