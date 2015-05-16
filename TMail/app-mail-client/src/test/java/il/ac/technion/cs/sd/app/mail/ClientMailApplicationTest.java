@@ -1,6 +1,11 @@
 package il.ac.technion.cs.sd.app.mail;
 
 import static org.junit.Assert.*;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import il.ac.technion.cs.sd.lib.ClientConnection;
 
 import org.junit.After;
@@ -16,6 +21,7 @@ public class ClientMailApplicationTest {
 	static private final String clientAddress = "clientAddress";
 	static private final String serverAddress = "serverAddress";
 
+	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception {
 		connection = Mockito.mock(ClientConnection.class);
@@ -41,37 +47,79 @@ public class ClientMailApplicationTest {
 
 	@Test
 	public void testGetCorrespondences() {
-		fail("Not yet implemented");
+		List<Mail> expected_result = Arrays.asList(new Mail("a", "b", "c"), new Mail("e", "f", "g"));
+		MailRequest expected_response = MailRequest.getCorrespondences("other"); 
+		expected_response.attachResponse(MailResponse.withMailResults(expected_result));
+		
+		
+		Mockito.when(connection.receiveBlocking()).thenReturn(expected_response);
+		assertEquals(expected_result, client.getCorrespondences("other", 0));
+		
+		Mockito.verify(connection).send(MailRequest.getCorrespondences("other"));
 	}
-//
-//	@Test
-//	public void testGetSentMails() {
-//		fail("Not yet implemented");
-//	}
-//
-//	@Test
-//	public void testGetIncomingMail() {
-//		fail("Not yet implemented");
-//	}
-//
-//	@Test
-//	public void testGetAllMail() {
-//		fail("Not yet implemented");
-//	}
-//
-//	@Test
-//	public void testGetNewMail() {
-//		fail("Not yet implemented");
-//	}
-//
-//	@Test
-//	public void testGetContacts() {
-//		fail("Not yet implemented");
-//	}
-//
-//	@Test
-//	public void testStop() {
-//		fail("Not yet implemented");
-//	}
 
+	@Test
+	public void testGetSentMails() {
+		List<Mail> expected_result = Arrays.asList(new Mail("a", "b", "c"), new Mail("e", "f", "g"));
+		MailRequest expected_response = MailRequest.getMailSent(7); 
+		expected_response.attachResponse(MailResponse.withMailResults(expected_result));
+		
+		
+		Mockito.when(connection.receiveBlocking()).thenReturn(expected_response);
+		assertEquals(expected_result, client.getSentMails(7));
+		
+		Mockito.verify(connection).send(MailRequest.getMailSent(7));
+	}
+
+	@Test
+	public void testGetIncomingMail() {
+		List<Mail> expected_result = Arrays.asList(new Mail("a", "b", "c"), new Mail("e", "f", "g"));
+		MailRequest expected_response = MailRequest.getIncoming(7); 
+		expected_response.attachResponse(MailResponse.withMailResults(expected_result));
+		
+		
+		Mockito.when(connection.receiveBlocking()).thenReturn(expected_response);
+		assertEquals(expected_result, client.getIncomingMail(7));
+		
+		Mockito.verify(connection).send(MailRequest.getIncoming(7));
+	}
+
+	@Test
+	public void testGetAllMail() {
+		List<Mail> expected_result = Arrays.asList(new Mail("a", "b", "c"), new Mail("e", "f", "g"));
+		MailRequest expected_response = MailRequest.getAllMail(7); 
+		expected_response.attachResponse(MailResponse.withMailResults(expected_result));
+		
+		
+		Mockito.when(connection.receiveBlocking()).thenReturn(expected_response);
+		assertEquals(expected_result, client.getAllMail(7));
+		
+		Mockito.verify(connection).send(MailRequest.getAllMail(7));
+	}
+
+	@Test
+	public void testGetNewMail() {
+		List<Mail> expected_result = Arrays.asList(new Mail("a", "b", "c"), new Mail("e", "f", "g"));
+		MailRequest expected_response = MailRequest.getUnread(); 
+		expected_response.attachResponse(MailResponse.withMailResults(expected_result));
+		
+		
+		Mockito.when(connection.receiveBlocking()).thenReturn(expected_response);
+		assertEquals(expected_result, client.getNewMail());
+		
+		Mockito.verify(connection).send(MailRequest.getUnread());
+	}
+
+	@Test
+	public void testGetContacts() {
+		List<String> expected_result = Arrays.asList("Aba", "Ima", "Bamba");
+		MailRequest expected_response = MailRequest.getContacts(); 
+		expected_response.attachResponse(MailResponse.withContactsResults(expected_result));
+		
+		
+		Mockito.when(connection.receiveBlocking()).thenReturn(expected_response);
+		assertEquals(expected_result, client.getContacts(0));
+		
+		Mockito.verify(connection).send(MailRequest.getContacts());
+	}
 }

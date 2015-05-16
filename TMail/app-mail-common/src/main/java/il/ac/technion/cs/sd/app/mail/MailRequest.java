@@ -152,7 +152,12 @@ public class MailRequest implements Serializable {
 		if (amount != other.amount) {
 			return false;
 		}
-		
+		if (response == null) {
+			if (other.response != null)
+				return false;
+		} else if (!response.equals(other.response))
+			return false;
+
 		return true;
 	}
 }
