@@ -20,7 +20,10 @@ public class ClientMailApplication {
 	 * @param username The user that will be sending and accepting the mail using this object
 	 */
 	public ClientMailApplication(String serverAddress, String username) {
-		this(ClientConnection.<MailRequest>create(serverAddress, username));
+		if (serverAddress == null || serverAddress.isEmpty() || username == null || username.isEmpty()) {
+			throw new IllegalArgumentException();
+		}
+		this.connection = ClientConnection.<MailRequest>create(serverAddress, username);
 	}
 	
 	
@@ -29,6 +32,9 @@ public class ClientMailApplication {
 	 * @param connection the connection to use.
 	 */
 	private ClientMailApplication(ClientConnection<MailRequest> connection) {
+		if (connection == null) {
+			throw new IllegalArgumentException();
+		}
 		this.connection = connection;
 	}
 	
@@ -39,7 +45,10 @@ public class ClientMailApplication {
 	 */
 	public static ClientMailApplication createWithMockConnection(
 			ClientConnection<MailRequest> connection) {
-				return new ClientMailApplication(connection);
+		if (connection == null) {
+			throw new IllegalArgumentException();
+		}
+		return new ClientMailApplication(connection);
 	}
 	
 	/**
@@ -48,6 +57,9 @@ public class ClientMailApplication {
 	 * @param what The message to send
 	 */
 	public void sendMail(String whom, String what) {
+		if (whom == null || whom.isEmpty() || what == null || what.isEmpty()) {
+			throw new IllegalArgumentException();
+		}
 		Mail mail = new Mail(connection.getAddress(), whom, what);
 		MailRequest request = MailRequest.sendMail(mail);
 		connection.send(request);
@@ -60,6 +72,9 @@ public class ClientMailApplication {
 	 * @return A list, ordered of all mails matching the criteria, ordered by time of arrival, of size n <i>at most</i>  
 	 */
 	public List<Mail> getCorrespondences(String whom, int howMany) {
+		if (whom == null || whom.isEmpty() || howMany < 0) {
+			throw new IllegalArgumentException();
+		}
 		MailRequest request = MailRequest.getCorrespondences(whom, howMany);
 		connection.send(request);
 		
@@ -73,6 +88,9 @@ public class ClientMailApplication {
 	 * @return A list, ordered of all mails matching the criteria, ordered by time of arrival, of size n <i>at most</i>  
 	 */
 	public List<Mail> getSentMails(int howMany) {
+		if (howMany < 0) {
+			throw new IllegalArgumentException();
+		}
 		MailRequest request = MailRequest.getMailSent(howMany);
 		connection.send(request);
 		
@@ -86,6 +104,9 @@ public class ClientMailApplication {
 	 * @return A list, ordered of all mails matching the criteria, ordered by time of arrival, of size n <i>at most</i>  
 	 */
 	public List<Mail> getIncomingMail(int howMany) {
+		if (howMany < 0) {
+			throw new IllegalArgumentException();
+		}
 		MailRequest request = MailRequest.getIncoming(howMany);
 		connection.send(request);
 		
@@ -99,6 +120,9 @@ public class ClientMailApplication {
 	 * @return A list, ordered of all mails matching the criteria, ordered by time of arrival, of size n <i>at most</i>  
 	 */
 	public List<Mail> getAllMail(int howMany) {
+		if (howMany < 0) {
+			throw new IllegalArgumentException();
+		}
 		MailRequest request = MailRequest.getAllMail(howMany);
 		connection.send(request);
 		
@@ -122,6 +146,9 @@ public class ClientMailApplication {
 	 * @return A list, ordered alphabetically, of all other users that sent or received mail from the current user  
 	 */
 	public List<String> getContacts(int howMany) {
+		if (howMany < 0) {
+			throw new IllegalArgumentException();
+		}
 		MailRequest request = MailRequest.getContacts();
 		connection.send(request);
 		
