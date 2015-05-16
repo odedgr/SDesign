@@ -80,7 +80,6 @@ public class FileDataSaver<T> implements DataSaver<T> {
 			T obj = (T) ois.readObject();
 			return Optional.of(obj);
 		} catch (IOException | ClassNotFoundException e ) {
-			// TODO Auto-generated catch block
 			throw new RuntimeException(e);
 		} finally {
 			try {
