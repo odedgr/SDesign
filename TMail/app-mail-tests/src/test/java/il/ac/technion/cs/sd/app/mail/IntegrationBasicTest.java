@@ -108,6 +108,36 @@ public class IntegrationBasicTest extends IntegrationTestBaseClass {
 	}
 	
 	@Test
+	public void contactsAreInAlphabeticalOrder() {
+		ClientMailApplication c1 = buildClient("a");
+		ClientMailApplication c2 = buildClient("b");
+		ClientMailApplication c3 = buildClient("c");
+		ClientMailApplication c4 = buildClient("d");
+
+		c1.sendMail("b", "hi");
+		c4.sendMail("a", "hi");
+		{
+			List<String> contacts = c1.getContacts(10);
+			assertEquals(2, contacts.size());
+			assertEquals("b", contacts.get(0));
+			assertEquals("d", contacts.get(1));
+		}
+		{
+			c3.sendMail("a", "hi");
+			List<String> contacts = c1.getContacts(10);
+			assertEquals(3, contacts.size());
+			assertEquals("b", contacts.get(0));
+			assertEquals("c", contacts.get(1));
+			assertEquals("d", contacts.get(2));
+		}
+		{
+			List<String> contacts = c2.getContacts(10);
+			assertEquals(1, contacts.size());
+			assertEquals("a", contacts.get(0));
+		}
+	}
+	
+	@Test
 	public void unreadRemainUnreadAfterServerRestart() throws InterruptedException {
 		ClientMailApplication arik = buildClient("arik");
 		ClientMailApplication benz = buildClient("benz");

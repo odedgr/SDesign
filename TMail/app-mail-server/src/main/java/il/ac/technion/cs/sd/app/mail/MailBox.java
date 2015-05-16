@@ -7,6 +7,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * A Container for all of a single client's mail and information.
@@ -143,7 +145,7 @@ public class MailBox {
 	 * @return List of this client's contacts.
 	 */
 	public List<String> getContacts() {
-		return new ArrayList<String>(this.correspondece.keySet());
+		return this.correspondece.keySet().stream().sorted().collect(Collectors.toList());
 	}
 
 	/**
