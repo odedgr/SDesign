@@ -87,7 +87,7 @@ public class ClientMailApplication {
 	 * @param howMany how many mails to retrieve; mails are ordered by time of arrival to server
 	 * @return A list, ordered of all mails matching the criteria, ordered by time of arrival, of size n <i>at most</i>  
 	 */
-	public List<Mail> getSentMails(int howMany) {
+	public List<Mail> getSentMail(int howMany) {
 		if (howMany < 0) {
 			throw new IllegalArgumentException();
 		}

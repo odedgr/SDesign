@@ -1,6 +1,6 @@
 package il.ac.technion.cs.sd.app.mail;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import il.ac.technion.cs.sd.lib.ClientConnection;
 
 import java.util.Arrays;
@@ -64,7 +64,7 @@ public class ClientMailApplicationTest {
 		
 		
 		Mockito.when(connection.receiveBlocking()).thenReturn(expected_response);
-		assertEquals(expected_result, client.getSentMails(7));
+		assertEquals(expected_result, client.getSentMail(7));
 		
 		Mockito.verify(connection).send(MailRequest.getMailSent(7));
 	}
@@ -119,5 +119,55 @@ public class ClientMailApplicationTest {
 		assertEquals(expected_result, client.getContacts(0));
 		
 		Mockito.verify(connection).send(MailRequest.getContacts());
+	}
+	
+	@Test (expected=IllegalArgumentException.class)
+	public void failWithEmptyRecipient() {
+		client.sendMail("", "a");
+	}
+	
+	@Test (expected=IllegalArgumentException.class)
+	public void failWithNullRecipient() {
+		client.sendMail(null, "a");
+	}
+	
+	@Test (expected=IllegalArgumentException.class)
+	public void failWithEmptyMessage() {
+		client.sendMail("b", "");
+	}
+	
+	@Test (expected=IllegalArgumentException.class)
+	public void failWithNullMessage() {
+		client.sendMail("b", null);
+	}
+	
+	@Test (expected=IllegalArgumentException.class)
+	public void failWithEmptyOtherClient() {
+		client.getCorrespondences("", 5);
+	}
+	
+	@Test (expected=IllegalArgumentException.class)
+	public void failWithNullOtherClient() {
+		client.getCorrespondences(null, 5);
+	}
+	
+	@Test (expected=IllegalArgumentException.class)
+	public void failWithNegativeHowmanyInCorrespondences() {
+		client.getCorrespondences(null, -5);
+	}
+	
+	@Test (expected=IllegalArgumentException.class)
+	public void failWithNegativeHowmanyInAllMail() {
+		client.getAllMail(-1);
+	}
+	
+	@Test (expected=IllegalArgumentException.class)
+	public void failWithNegativeHowmanyInIncomingMail() {
+		client.getIncomingMail(-6);
+	}
+	
+	@Test (expected=IllegalArgumentException.class)
+	public void failWithNegativeHowmanyInSentMail() {
+		client.getSentMail(-10);
 	}
 }

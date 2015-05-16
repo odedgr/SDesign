@@ -32,7 +32,7 @@ public class IntegrationSentMailTest extends IntegrationTestBaseClass {
 		
 		Collections.reverse(mails);
 		
-		assertEquals(mails, testClient.getSentMails(3));
+		assertEquals(mails, testClient.getSentMail(3));
 	}
 	
 	@Test
@@ -41,7 +41,7 @@ public class IntegrationSentMailTest extends IntegrationTestBaseClass {
 		buildClient("other").sendMail(testClientName, "heard you just fine");
 		testClient.sendMail("other", "what's up?");
 		
-		List<Mail> sent = testClient.getSentMails(2);
+		List<Mail> sent = testClient.getSentMail(2);
 		
 		assertEquals("testClient sent out exactly 2 mails", 2, sent.size());
 		assertTrue(sent.contains(new Mail(testClientName, "other", "testing, testing...")));
@@ -53,7 +53,7 @@ public class IntegrationSentMailTest extends IntegrationTestBaseClass {
 		testClient.sendMail("nobody", "one");
 		testClient.sendMail("nobody", "two");
 		
-		assertEquals("only asked for 1 mail", 1, testClient.getSentMails(1).size());
+		assertEquals("only asked for 1 mail", 1, testClient.getSentMail(1).size());
 	}
 	
 	@Test
@@ -61,14 +61,14 @@ public class IntegrationSentMailTest extends IntegrationTestBaseClass {
 		testClient.sendMail("nobody", "one");
 		testClient.sendMail("nobody", "two");
 		
-		assertEquals("only sent out 2 mails", 2, testClient.getSentMails(5).size());
+		assertEquals("only sent out 2 mails", 2, testClient.getSentMail(5).size());
 	}
 	
 	@Test
 	public void sentMailQueryReturnsEmptyWhenNonSent() {
-		assertTrue("should get an empty list", testClient.getSentMails(1).isEmpty());
+		assertTrue("should get an empty list", testClient.getSentMail(1).isEmpty());
 		buildClient("other").sendMail(testClientName, "hello");
-		assertTrue("should get an empty list", testClient.getSentMails(1).isEmpty());
+		assertTrue("should get an empty list", testClient.getSentMail(1).isEmpty());
 	}
 	
 }

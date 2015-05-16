@@ -76,7 +76,7 @@ public class IntegrationBasicTest extends IntegrationTestBaseClass {
 		assertEquals("should have received 2 separate duplicates of mail", 2, results.size());
 		results = cl2.getIncomingMail(5);
 		assertEquals("should have received 2 separate duplicates of mail", 2, results.size());
-		results = cl1.getSentMails(5);
+		results = cl1.getSentMail(5);
 		assertEquals("should have sent 2 separate duplicates of mail", 2, results.size());
 	}
 	
@@ -91,7 +91,7 @@ public class IntegrationBasicTest extends IntegrationTestBaseClass {
 		for (int i = 0; i < iterations; ++i) {
 			restartServer();
 			assertEquals("the receiver should always have a single mail", 1, receiver.getIncomingMail(5).size());
-			assertEquals("the sender should always have a single mail", 1, sender.getSentMails(5).size());
+			assertEquals("the sender should always have a single mail", 1, sender.getSentMail(5).size());
 		}
 	}
 	

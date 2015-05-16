@@ -33,6 +33,17 @@ public class IntegerationReceivedMailTest extends IntegrationTestBaseClass{
 	}
 	
 	@Test
+	public void receivedZeroMail() {
+		
+		otherClient.sendMail(testClientName, "oldest");
+		otherClient.sendMail(testClientName, "middle");
+		otherClient.sendMail(testClientName, "newest");
+		
+		List<Mail> incomingMail = testClient.getIncomingMail(0);
+		assertTrue(incomingMail.isEmpty());
+	}
+	
+	@Test
 	public void receivedMailQueryIsOrderedFromNewToOld() {
 		
 		otherClient.sendMail(testClientName, "oldest");
