@@ -1,6 +1,5 @@
 package il.ac.technion.cs.sd.app.mail;
 
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,7 +13,7 @@ import java.util.Set;
  */
 public class MailBox {
 	
-	Set<MailEntry> unread = new LinkedHashSet<MailEntry>(); // <mail.hashCode(), mail>
+	Set<MailEntry> unread = new LinkedHashSet<MailEntry>(); 
 	List<MailEntry> all_mail = new ArrayList<MailEntry>(); // ordered from oldest (start) to newest (end). new mails are appended at the end
 	List<MailEntry> sent = new ArrayList<MailEntry>(); // ordered from oldest (start) to newest (end). new mails are appended at the end
 	List<MailEntry> inbox = new ArrayList<MailEntry>(); // ordered from oldest (start) to newest (end). new mails are appended at the end
@@ -108,7 +107,7 @@ public class MailBox {
 	 */
 	public List<MailEntry> getLastNReceived(int n) {
 		if (n < 0) {
-			throw new InvalidParameterException("requested amount must be non-negative");
+			throw new IllegalArgumentException("requested amount must be non-negative");
 		}
 		
 		List<MailEntry> lastReceived = getLastMailsOrdered(this.inbox, n);
@@ -128,7 +127,7 @@ public class MailBox {
 	 */
 	public List<MailEntry> getLastNMails(int howMany) {
 		if (howMany < 0) {
-			throw new InvalidParameterException("requested amount must be non-negative");
+			throw new IllegalArgumentException("requested amount must be non-negative");
 		}
 		
 		List<MailEntry> $ = getLastMailsOrdered(all_mail, howMany);
