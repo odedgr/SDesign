@@ -47,8 +47,8 @@ public class MailRequest implements Serializable {
 	public static MailRequest getAllMail(int amount) {
 		return new MailRequest(RequestType.GET_ALL_MAIL, amount);
 	}
-	public static MailRequest getCorrespondences(String otherClient) {
-		return new MailRequest(RequestType.GET_CORRESPONDANCES, otherClient);
+	public static MailRequest getCorrespondences(String otherClient, int amount) {
+		return new MailRequest(RequestType.GET_CORRESPONDANCES, amount, null, otherClient);
 	}
 	public static MailRequest getUnread() {
 		return new MailRequest(RequestType.GET_UNREAD);
@@ -73,7 +73,7 @@ public class MailRequest implements Serializable {
 		this(type, -1, null, null);
 	}
 	
-	private MailRequest(RequestType type, int amount, Mail mail,  String otherClient) {
+	private MailRequest(RequestType type, int amount, Mail mail, String otherClient) {
 		this.type = type;
 		this.amount = amount;
 		this.mail = mail;

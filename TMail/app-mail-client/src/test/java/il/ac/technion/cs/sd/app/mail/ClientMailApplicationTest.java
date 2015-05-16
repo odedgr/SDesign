@@ -1,12 +1,10 @@
 package il.ac.technion.cs.sd.app.mail;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import il.ac.technion.cs.sd.lib.ClientConnection;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import il.ac.technion.cs.sd.lib.ClientConnection;
 
 import org.junit.After;
 import org.junit.Before;
@@ -48,14 +46,14 @@ public class ClientMailApplicationTest {
 	@Test
 	public void testGetCorrespondences() {
 		List<Mail> expected_result = Arrays.asList(new Mail("a", "b", "c"), new Mail("e", "f", "g"));
-		MailRequest expected_response = MailRequest.getCorrespondences("other"); 
+		MailRequest expected_response = MailRequest.getCorrespondences("other", 2); 
 		expected_response.attachResponse(MailResponse.withMailResults(expected_result));
 		
 		
 		Mockito.when(connection.receiveBlocking()).thenReturn(expected_response);
-		assertEquals(expected_result, client.getCorrespondences("other", 0));
+		assertEquals(expected_result, client.getCorrespondences("other", 2));
 		
-		Mockito.verify(connection).send(MailRequest.getCorrespondences("other"));
+		Mockito.verify(connection).send(MailRequest.getCorrespondences("other", 2));
 	}
 
 	@Test

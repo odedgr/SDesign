@@ -60,7 +60,7 @@ public class ClientMailApplication {
 	 * @return A list, ordered of all mails matching the criteria, ordered by time of arrival, of size n <i>at most</i>  
 	 */
 	public List<Mail> getCorrespondences(String whom, int howMany) {
-		MailRequest request = MailRequest.getCorrespondences(whom); // TODO: validate that howMany is redundant here.
+		MailRequest request = MailRequest.getCorrespondences(whom, howMany);
 		connection.send(request);
 		
 		MailResponse response = connection.receiveBlocking().getResponse();
