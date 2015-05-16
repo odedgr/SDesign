@@ -49,13 +49,12 @@ public class IntegrationBasicTest {
 	}
 
 	private void shutDownDefaultTesters() throws InterruptedException {
-		Thread.sleep(10L);
 		useDefaultTesters = false;
 		server.clean();
 		server.stop();
 		clients.forEach(c -> c.stop());
 		serverThread.stop();
-		Thread.sleep(10L);
+		Thread.sleep(5L);
 	}
 	
 	@Test
