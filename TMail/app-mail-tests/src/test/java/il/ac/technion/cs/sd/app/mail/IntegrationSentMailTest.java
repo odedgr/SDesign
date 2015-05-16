@@ -11,36 +11,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class IntegrationSentMailTest {
+public class IntegrationSentMailTest extends IntegrationTestBaseClass {
 	private final String testClientName = "sentTester";
-	private ServerMailApplication		server	= new ServerMailApplication("server");
-	private ClientMailApplication       testClient = null;
-	private List<ClientMailApplication>	clients	= new ArrayList<>();
-	private Thread serverThread;
+	private ClientMailApplication testClient = null;
 	
-	private ClientMailApplication buildClient(String login) {
-		ClientMailApplication $ = new ClientMailApplication(server.getAddress(), login);
-		clients.add($);
-		return $;
-	}
-	
-	@Before
-	public void setUp() throws Exception {
-		serverThread = new Thread(() -> server.start());
-		serverThread.start();
-		Thread.yield(); 
-		Thread.sleep(10L);
+	@Override
+	public void setup() throws InterruptedException {
+		super.setup();
 		testClient = buildClient(testClientName);
-	}
-
-	@SuppressWarnings("deprecation")
-	@After
-	public void tearDown() throws Exception {
-		server.clean();
-		server.stop();
-		clients.forEach(c -> c.stop());
-		clients.clear();
-		serverThread.stop();
 	}
 
 	@Test

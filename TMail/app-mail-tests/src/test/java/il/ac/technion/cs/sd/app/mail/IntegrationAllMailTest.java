@@ -12,45 +12,25 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class IntegrationAllMailTest {
+public class IntegrationAllMailTest extends IntegrationTestBaseClass{
 	private final String testClientName = "allMailTester";
-	private ServerMailApplication		server	= new ServerMailApplication("server");
-	private ClientMailApplication       testClient = null;
-	private List<ClientMailApplication>	clients	= new ArrayList<>();
-	private Thread serverThread;
+	private ClientMailApplication testClient = null;
 	
-	private ClientMailApplication buildClient(String login) {
-		ClientMailApplication $ = new ClientMailApplication(server.getAddress(), login);
-		clients.add($);
-		return $;
-	}
+	private final String otherClientName = "other";
+	private ClientMailApplication otherClient = null;
 	
-	@Before
-	public void setUp() throws Exception {
-		serverThread = new Thread(() -> server.start());
-		serverThread.start();
-		Thread.yield(); 
-		Thread.sleep(10L);
+	@Override
+	public void setup() throws InterruptedException {
+		super.setup();
 		testClient = buildClient(testClientName);
-	}
-
-	@SuppressWarnings("deprecation")
-	@After
-	public void tearDown() throws Exception {
-		server.clean();
-		server.stop();
-		clients.forEach(c -> c.stop());
-		clients.clear();
-		serverThread.stop();
+		otherClient = buildClient(otherClientName);
 	}
 
 	@Test
 	public void allMailQueryMarksAsRead() {
-		ClientMailApplication otherClient = buildClient("other");
-		
 		otherClient.sendMail(testClientName, "1");
 		otherClient.sendMail(testClientName, "2");
-		testClient.sendMail("other", "back at'ya");
+		testClient.sendMail(otherClientName, "back at'ya");
 		testClient.getAllMail(2);
 		
 		assertEquals("first mail should have been marked as read", 1, testClient.getNewMail().size());
@@ -58,12 +38,10 @@ public class IntegrationAllMailTest {
 	
 	@Test
 	public void allMailQueryIsOrderedFromNewToOld() {
-		ClientMailApplication otherClient = buildClient("other");
-		
 		List<Mail> mails = Arrays.asList(
-				new Mail("other", testClientName, "oldest"),
-				new Mail("other", testClientName, "slightly used"),
-				new Mail("other", testClientName, "brand new"));
+				new Mail(otherClientName, testClientName, "oldest"),
+				new Mail(otherClientName, testClientName, "slightly used"),
+				new Mail(otherClientName, testClientName, "brand new"));
 		
 		for (Mail mail : mails) {
 			otherClient.sendMail(mail.to, mail.content);
@@ -76,11 +54,9 @@ public class IntegrationAllMailTest {
 	
 	@Test
 	public void allMailQueryContainsBothSendAndReceive() {
-		ClientMailApplication otherClient = buildClient("other");
-		
 		List<Mail> mails = Arrays.asList(
-				new Mail("other", testClientName, "bla bla"),
-				new Mail(testClientName, "other", "yada yada"));
+				new Mail(otherClientName, testClientName, "bla bla"),
+				new Mail(testClientName, otherClientName, "yada yada"));
 		
 		otherClient.sendMail(mails.get(0).to, mails.get(0).content);
 		testClient.sendMail(mails.get(1).to, mails.get(1).content);
@@ -93,8 +69,6 @@ public class IntegrationAllMailTest {
 	@Test
 	public void allMailQueryReturnsNoMoreThanAskedItems() {
 		final int smallPositiveAmount = 7;
-		ClientMailApplication otherClient = buildClient("other");
-		
 		for (int i = 0; i < smallPositiveAmount; ++i) {
 			otherClient.sendMail(testClientName, "Boo!");
 		}
@@ -105,8 +79,6 @@ public class IntegrationAllMailTest {
 	
 	@Test
 	public void allMailQueryReturnsAmountExistingLowerThanAsked() {
-		ClientMailApplication otherClient = buildClient("other");
-		
 		otherClient.sendMail(testClientName, "bla bla");
 		otherClient.sendMail(testClientName, "yada yada");
 		
