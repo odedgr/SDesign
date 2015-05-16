@@ -60,7 +60,6 @@ public class ServerMailApplication {
 	public void start() {
 		loadData();
 		connection = ServerConnection.<MailRequest>create(address);
-		// TODO: load from DB
 		
 		while (true) {
 			MessageWithSender<MailRequest> signed_request = connection.receiveBlocking();
@@ -133,17 +132,19 @@ public class ServerMailApplication {
 	 * @param mail Mail item that was sent.
 	 */
 	private void addNewMail(Mail mail) {
-		String sender = mail.from;
-		String receiver = mail.to;
-		
-		MailEntry entry = new MailEntry(mail);
-		
-		MailBox senderBox = getMailBoxOfClient(sender);
-		MailBox receiverBox = getMailBoxOfClient(receiver);
-		
-		senderBox.addSentMail(entry);
-		receiverBox.addReceivedMail(entry);
-		
+		addNewMailEntry(new MailEntry(mail));
+
+	}
+	
+	/**
+	 * Add a new mail entry, sent from a client or loaded from history.
+	 * Updates both clients' mailboxes.
+	 * 
+	 * @param entry the mail entry to add.
+	 */
+	private void addNewMailEntry(MailEntry entry) {
+		getMailBoxOfClient(entry.getMail().from).addSentMail(entry);
+		getMailBoxOfClient(entry.getMail().to).addReceivedMail(entry);
 		history.add(entry);
 	}
 	
@@ -237,10 +238,7 @@ public class ServerMailApplication {
 		}
 		
 		for (MailEntry entry : loaded_history.get()) {
-			addNewMail(entry.getMail());
-			if (entry.getIsRead()) {
-				
-			}
+			addNewMailEntry(entry);
 		}
 	}
 	
