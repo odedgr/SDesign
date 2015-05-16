@@ -3,6 +3,7 @@ package il.ac.technion.cs.sd.app.mail;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -48,12 +49,13 @@ public class IntegrationBasicTest {
 	}
 
 	private void shutDownDefaultTesters() throws InterruptedException {
+		Thread.sleep(10L);
 		useDefaultTesters = false;
 		server.clean();
 		server.stop();
 		clients.forEach(c -> c.stop());
 		serverThread.stop();
-		Thread.sleep(20L);
+		Thread.sleep(10L);
 	}
 	
 	@Test
@@ -82,7 +84,6 @@ public class IntegrationBasicTest {
 		shutDownDefaultTesters();
 		
 		// init - original server, and a client that sends some message
-		System.out.println("contents test - SERVER 1"); // TODO remove print
 		final ServerMailApplication s1 = new ServerMailApplication("s");
 		ClientMailApplication c = new ClientMailApplication(s1.getAddress(), "c15");
 		final Thread st1 = startServerInThread(s1);
@@ -90,13 +91,11 @@ public class IntegrationBasicTest {
 
 		// give time to handle request
 		Thread.yield();
-		Thread.sleep(20L);
+		Thread.sleep(10L);
 		
 		// stop original server
 		s1.stop();
 		st1.stop();
-		
-		System.out.println("contents test - SERVER 2"); // TODO remove print
 		
 		// create 2nd server with same address, load original's contents
 		final ServerMailApplication s2 = new ServerMailApplication("s");
@@ -108,9 +107,9 @@ public class IntegrationBasicTest {
 		s2.clean();
 		s2.stop();
 		st2.stop();
+		c.stop();
 		
 		assertEquals("should have the original single message sent with previous server", 1, results.size());
-		
 	}
 	
 	
@@ -126,7 +125,7 @@ public class IntegrationBasicTest {
 
 		// give time to handle request
 		Thread.yield();
-		Thread.sleep(20L);
+		Thread.sleep(10L);
 		
 		// stop original server
 		s.clean();
@@ -143,6 +142,7 @@ public class IntegrationBasicTest {
 		s2.clean();
 		s2.stop();
 		st.stop();
+		c.stop();
 		
 		assertEquals("should have no messages sent with previous server", 0, results.size());
 	}
@@ -158,7 +158,7 @@ public class IntegrationBasicTest {
 
 		// give time to handle request
 		Thread.yield();
-		Thread.sleep(20L);
+		Thread.sleep(10L);
 		
 		// clean server's contents
 		s.clean();
@@ -166,8 +166,73 @@ public class IntegrationBasicTest {
 		
 		s.stop();
 		st.stop();
+		c.stop();
 		
 		assertEquals("should have no messages after server clean", 0, results.size());
+	}
+	
+	@Test 
+	public void duplicateMailIsReturnedAsUniqueItems() throws InterruptedException {
+		ClientMailApplication cl1 = buildClient("cl1");
+		ClientMailApplication cl2 = buildClient("cl2");
+
+		cl1.sendMail("cl2", "same mail");
+		cl1.sendMail("cl2", "same mail");
+
+		List<Mail> results = cl2.getNewMail();
+		assertEquals("should have received 2 separate duplicates of mail", 2, results.size());
+		results = cl2.getIncomingMail(5);
+		assertEquals("should have received 2 separate duplicates of mail", 2, results.size());
+		results = cl1.getSentMails(5);
+		assertEquals("should have sent 2 separate duplicates of mail", 2, results.size());
+	}
+	
+	@Test 
+	public void serverDataIsPersistentUnderManyRestarts() throws InterruptedException {
+		shutDownDefaultTesters();
+		final int iterations = 5;
+		
+		ServerMailApplication s = new ServerMailApplication("s");
+		ClientMailApplication sender = new ClientMailApplication(s.getAddress(), "sender");
+		ClientMailApplication receiver = new ClientMailApplication(s.getAddress(), "receiver");
+		Thread st = startServerInThread(s);
+		sender.sendMail("receiver", "whatever");
+
+		// give time to handle request
+		Thread.yield();
+		Thread.sleep(10L);
+		
+		for (int i = 0; i < iterations; ++i) {
+			s.stop();
+			st.stop();
+			Thread.sleep(5L);
+			
+			s = new ServerMailApplication("s");
+			st = startServerInThread(s);
+			
+			Thread.sleep(5L);
+			assertEquals("the receiver should always have a single mail", 1, receiver.getIncomingMail(5).size());
+			assertEquals("the sender should always have a single mail", 1, sender.getSentMails(5).size());
+		}
+
+		// clean up
+		s.clean();
+		s.stop();
+		st.stop();
+		
+		sender.stop();
+		receiver.stop();
+	}
+	
+	@Test
+	public void contactsAreUnique() {
+		testClient.sendMail("one", "bla");
+		testClient.sendMail("two", "bla");
+		testClient.sendMail("one", "yada");
+		testClient.sendMail("two", "yada");
+		
+		assertEquals("wrote to exactly 2 other clients", 2, testClient.getContacts(5).size());
+		assertTrue("contacts should include exactly 'one' and 'two'", testClient.getContacts(5).containsAll(Arrays.asList("one", "two")));
 	}
 
 }
