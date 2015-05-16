@@ -3,16 +3,13 @@ package il.ac.technion.cs.sd.app.mail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
-public class IntegrationCorrespondencelTest extends IntegrationTestBaseClass {
+public class IntegrationCorrespondenceTest extends IntegrationTestBaseClass {
 
 	private final String testClientName =	"correspondenceTester";
 	private ClientMailApplication       	testClient = null;

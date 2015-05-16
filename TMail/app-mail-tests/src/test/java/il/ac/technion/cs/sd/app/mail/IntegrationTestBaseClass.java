@@ -8,6 +8,11 @@ import org.junit.After;
 import org.junit.Before;
 
 public class IntegrationTestBaseClass {
+	
+	private static final int SLEEP_MILLISECODS_AFTER_START = 50;
+	private static final int SLEEP_MILLISECODS_BEFORE_STOP = 20;
+	private static final int SLEEP_MILLISECODS_BEFORE_CLEAN = 20;
+	
 	private ServerMailApplication		server	= new ServerMailApplication("server");
 	private List<ClientMailApplication>	clients	= new ArrayList<>();
 	private Thread						serverThread;
@@ -23,7 +28,7 @@ public class IntegrationTestBaseClass {
 		serverThread = new Thread(() -> server.start());
 		serverThread.start();
 		Thread.yield(); // STRONG hints to the OS to start the server thread, though nothing can be *truly* deterministic
-		Thread.sleep(100);
+		Thread.sleep(SLEEP_MILLISECODS_AFTER_START);
 	}
 	
 	@SuppressWarnings("deprecation") // "I know what I'm doing"
@@ -37,13 +42,13 @@ public class IntegrationTestBaseClass {
 	
 	@SuppressWarnings("deprecation")
 	protected void restartServer() throws InterruptedException {
-		Thread.sleep(100);
+		Thread.sleep(SLEEP_MILLISECODS_BEFORE_STOP);
 		server.stop();
 		serverThread.stop();
 		setup();
 	}
 	protected void cleanServer() throws InterruptedException {
-		Thread.sleep(100);
+		Thread.sleep(SLEEP_MILLISECODS_BEFORE_CLEAN);
 		server.clean();
 	}
 }
