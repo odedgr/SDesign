@@ -53,3 +53,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+TMail/app-mail-tests/app-mail-data
+TMail/app-mail-tests/app-mail-data-server
+TMail/app-mail-tests/app-mail-data-s
