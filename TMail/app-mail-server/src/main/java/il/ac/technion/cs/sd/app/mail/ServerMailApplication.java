@@ -191,7 +191,7 @@ public class ServerMailApplication {
 	}
 	
 	private List<String> getContacts(String client) {
-		MailBox mailbox = mailboxes.get(client);
+		MailBox mailbox = getMailBoxOfClient(client);
 		return mailbox.getContacts();
 	}
 	

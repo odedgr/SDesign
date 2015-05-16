@@ -108,6 +108,13 @@ public class IntegrationBasicTest extends IntegrationTestBaseClass {
 	}
 	
 	@Test
+	public void getEmptyContacts() {
+		ClientMailApplication c1 = buildClient("a");
+		List<String> contacts = c1.getContacts(10);
+		assertTrue(contacts.isEmpty());
+	}
+	
+	@Test
 	public void contactsAreInAlphabeticalOrder() {
 		ClientMailApplication c1 = buildClient("a");
 		ClientMailApplication c2 = buildClient("b");
