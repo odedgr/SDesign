@@ -35,7 +35,6 @@ public class TMailTest {
 		server.stop();
 		server.clean();
 		clients.forEach(x -> x.stop());
-		clients.clear();
 		serverThread.stop();
 	}
 	
@@ -50,46 +49,5 @@ public class TMailTest {
 		assertEquals(gal.getAllMail(3), Arrays.asList(
 				new Mail("Itay", "Gal", "sup"),
 				new Mail("Gal", "Itay", "Hi")));
-	}
-	
-	
-	// TODO: move to our tests.
-	@Test 
-	public void basicRelaunchTest() throws Exception {
-		ClientMailApplication gal = buildClient("Gal");
-		gal.sendMail("Itay", "Hi");
-		assertEquals(gal.getContacts(1), Arrays.asList("Itay"));
-		ClientMailApplication itay = buildClient("Itay");
-		assertEquals(itay.getNewMail(), Arrays.asList(new Mail("Gal", "Itay", "Hi")));
-		itay.sendMail("Gal", "sup");
-		assertEquals(gal.getAllMail(3), Arrays.asList(
-				new Mail("Itay", "Gal", "sup"),
-				new Mail("Gal", "Itay", "Hi")));
-		
-		server.stop();
-		serverThread.stop();
-		
-		setup();
-		assertEquals(gal.getAllMail(3), Arrays.asList(
-				new Mail("Itay", "Gal", "sup"),
-				new Mail("Gal", "Itay", "Hi")));
-	}
-	
-	// TODO: move to our tests.
-	@Test 
-	public void basicRelaunchTestUnread() throws Exception {
-		ClientMailApplication gal = buildClient("Gal");
-		gal.sendMail("Itay", "Hi");
-		assertEquals(gal.getContacts(1), Arrays.asList("Itay"));
-		ClientMailApplication itay = buildClient("Itay");
-		assertEquals(itay.getNewMail(), Arrays.asList(new Mail("Gal", "Itay", "Hi")));
-		itay.sendMail("Gal", "sup");
-		
-		server.stop();
-		serverThread.stop();
-		
-		setup();
-		assertEquals(gal.getNewMail(), Arrays.asList(
-				new Mail("Itay", "Gal", "sup")));
 	}
 }
