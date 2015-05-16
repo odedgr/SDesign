@@ -87,6 +87,7 @@ public class ClientConnectionTest {
 				new MessageWithSender<String>(message, testClientAddress)));
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Test 
 	public void blockOnBlockingReceiveWithNoMessage() throws InterruptedException, MessengerException {
 		// Wait 10 seconds to simulate a never-coming message...
@@ -95,11 +96,13 @@ public class ClientConnectionTest {
 			return null;
 		});
 		
-		new Thread(() -> {
+		Thread t = new Thread(() -> {
 				connection.receiveBlocking();
 				fail("Should have blocked");
-		}).start();
+		});
+		t.start();
 		Thread.sleep(100L);
+		t.stop();
 	}
 	
 	@Test

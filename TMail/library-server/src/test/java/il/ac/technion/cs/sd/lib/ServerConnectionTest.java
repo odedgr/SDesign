@@ -117,6 +117,7 @@ public class ServerConnectionTest {
 		assertEquals(clientAddress, mws.sender);
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Test(timeout = 1000L)
 	public void testRecieveBlocked() throws MessengerException, InterruptedException {
 		// Wait 10 seconds to simulate a never-coming message...
@@ -125,11 +126,13 @@ public class ServerConnectionTest {
 			return null;
 		});
 		
-		new Thread(() -> {
+		Thread t = new Thread(() -> {
 			connection.receiveBlocking();
 			fail("Should have been blocked");
-		}).start();
+		});
+		t.start();
 		Thread.sleep(100);
+		t.stop();
 	} 
 
 }

@@ -12,8 +12,6 @@ import org.junit.rules.Timeout;
 
 public class LibIntegrationTest {
 	
-	static private final String SERVER_ADDRESS = "serv";
-	
 	ClientConnection<String> client1, client2;
 	ServerConnection<String> server;
 	
