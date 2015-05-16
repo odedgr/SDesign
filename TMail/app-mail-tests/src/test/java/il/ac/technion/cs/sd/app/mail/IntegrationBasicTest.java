@@ -106,4 +106,25 @@ public class IntegrationBasicTest extends IntegrationTestBaseClass {
 		assertEquals("wrote to exactly 2 other clients", 2, c.getContacts(5).size());
 		assertTrue("contacts should include exactly 'one' and 'two'", c.getContacts(5).containsAll(Arrays.asList("one", "two")));
 	}
+	
+	@Test
+	public void unreadRemainUnreadAfterServerRestart() throws InterruptedException {
+		ClientMailApplication arik = buildClient("arik");
+		ClientMailApplication benz = buildClient("benz");
+		
+		arik.sendMail("benz", "benz");
+		arik.sendMail("benz", "you hear me?");
+		
+		restartServer();
+		assertEquals("both mails should be unread", 2, benz.getNewMail().size());
+		
+		arik.sendMail("benz", "hello?");
+		
+		restartServer();
+		restartServer();
+		assertEquals("only the last mail should be unread", 1, benz.getNewMail().size());
+		
+		restartServer();
+		assertEquals("all mail should have been read", 0, benz.getNewMail().size());
+	}
 }
