@@ -244,6 +244,12 @@ public class ServerMailApplication {
 		}
 	}
 	
+	/**
+	 * Safely get a mailbox of a given client. If non exists, a new mailbox will be created for the client.
+	 * 
+	 * @param client Address of client for whom the mailbox is requested.
+	 * @return MailBox of the given client.
+	 */
 	private MailBox getMailBoxOfClient(String client) {
 		MailBox mb = mailboxes.get(client);
 		
