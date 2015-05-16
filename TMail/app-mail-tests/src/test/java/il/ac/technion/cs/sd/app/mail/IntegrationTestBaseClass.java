@@ -25,13 +25,17 @@ public class IntegrationTestBaseClass {
 	
 	@Before 
 	public void setup() throws InterruptedException {
+		buildServer();
+	}
+	
+	private void buildServer() throws InterruptedException {
 		serverThread = new Thread(() -> server.start());
 		serverThread.start();
 		Thread.yield(); // STRONG hints to the OS to start the server thread, though nothing can be *truly* deterministic
 		Thread.sleep(SLEEP_MILLISECODS_AFTER_START);
 	}
 	
-	@SuppressWarnings("deprecation") // "I know what I'm doing"
+	@SuppressWarnings("deprecation")
 	@After 
 	public void teardown() {
 		server.stop();
@@ -45,7 +49,7 @@ public class IntegrationTestBaseClass {
 		Thread.sleep(SLEEP_MILLISECODS_BEFORE_STOP);
 		server.stop();
 		serverThread.stop();
-		setup();
+		buildServer();
 	}
 	protected void cleanServer() throws InterruptedException {
 		Thread.sleep(SLEEP_MILLISECODS_BEFORE_CLEAN);
