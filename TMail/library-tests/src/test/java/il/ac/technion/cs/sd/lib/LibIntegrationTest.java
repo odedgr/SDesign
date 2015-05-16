@@ -23,8 +23,8 @@ public class LibIntegrationTest {
 	@Before
 	public void setUp() throws Exception {
 		server = ServerConnection.<String>create("serv");
-		client1 = ClientConnection.<String>create("Haim", "serv");
-		client2 = ClientConnection.<String>create("Moshe", "serv");
+		client1 = ClientConnection.<String>create("serv", "Haim");
+		client2 = ClientConnection.<String>create("serv", "Moshe");
 	}
 
 	@After
@@ -124,7 +124,7 @@ public class LibIntegrationTest {
 	@Test
 	public void TestCustomCodec() {
 		ServerConnection<StringMsg> str_server = ServerConnection.<StringMsg>create("local_server_address", new StringMsgCodec());
-		ClientConnection<StringMsg> str_client = ClientConnection.<StringMsg>create("local_client_address", "local_server_address", new StringMsgCodec());
+		ClientConnection<StringMsg> str_client = ClientConnection.<StringMsg>create("local_server_address", "local_client_address", new StringMsgCodec());
 		
 		str_server.send(str_client.getAddress(), new StringMsg("Hi!"));
 		assertEquals("Hi!", str_client.receiveBlocking().str);
