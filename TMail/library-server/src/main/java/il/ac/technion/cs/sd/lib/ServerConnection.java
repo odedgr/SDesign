@@ -57,7 +57,6 @@ public class ServerConnection<Message> {
 	 * @param messenger the mock-messenger to use.
 	 * @return
 	 */
-	public static <Message extends Serializable> ServerConnection<Message> createWithMockMessenger(Messenger messenger) {
 		return new ServerConnection<Message>(messenger, new SerializeCodec<Message>());
 	}
 	
@@ -70,7 +69,7 @@ public class ServerConnection<Message> {
 	 * @param codec the custom codec for the Message type object.
 	 * @return
 	 */
-	public static <Message> ServerConnection<Message> createWithMockMessenger(Messenger messenger, Codec<Message> codec) {
+	static <Message> ServerConnection<Message> createWithMockMessenger(Messenger messenger, Codec<Message> codec) {
 		return new ServerConnection<Message>(messenger, codec);
 	}
 	
