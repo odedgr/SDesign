@@ -78,14 +78,21 @@ public class ServerMailApplication {
 	 */
 	private void startRequestHandlingLoop() {
 		while (true) {
-			MessageWithSender<MailRequest> signed_request = connection.receiveBlocking();
-			String client = signed_request.sender;
-			MailRequest request = signed_request.content;
-			Optional<MailResponse> response = handleRequest(client, request);
-			if (response.isPresent()) {
-				request.attachResponse(response.get());
-				// Send the request with the attached response back to the client.
-				connection.send(client, request);
+			try {
+				MessageWithSender<MailRequest> signed_request;
+				signed_request = connection.receiveBlocking();
+				String client = signed_request.sender;
+				MailRequest request = signed_request.content;
+				Optional<MailResponse> response = handleRequest(client, request);
+				if (response.isPresent()) {
+					request.attachResponse(response.get());
+					// Send the request with the attached response back to the
+					// client.
+					connection.send(client, request);
+				}
+			} catch (IllegalMonitorStateException e) {
+				// Application stopped from outside, return.
+				return;
 			}
 		}
 	}
