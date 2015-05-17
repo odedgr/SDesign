@@ -1,7 +1,5 @@
 package il.ac.technion.cs.sd.app.mail;
 
-import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 
 import il.ac.technion.cs.sd.lib.MessageWithSender;
@@ -10,10 +8,7 @@ import il.ac.technion.cs.sd.lib.ServerConnection;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
-import org.mockito.internal.matchers.MatcherDecorator;
-import org.mockito.internal.verification.Only;
 
 public class ServerMailApplicationTest {
 	
@@ -52,10 +47,12 @@ public class ServerMailApplicationTest {
 		return new MessageWithSender<MailRequest>(request, clientAddress);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void verifyMailResponseReturnedAllMail() throws InterruptedException {
 		MailRequest request = MailRequest.getAllMail(7);
-		Mockito.when(connection.receiveBlocking()).thenReturn(newRequest(request)).thenReturn(null);
+		// Throwing an IllegalMonitorStateException simulates server shut down.
+		Mockito.when(connection.receiveBlocking()).thenReturn(newRequest(request)).thenThrow(IllegalMonitorStateException.class);
 		startServer();
 		
 		MailRequest reponse = MailRequest.getAllMail(7);
@@ -63,10 +60,12 @@ public class ServerMailApplicationTest {
 		Mockito.verify(connection).send(clientAddress, reponse);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void verifyMailResponseReturnedUnread() throws InterruptedException {
 		MailRequest request = MailRequest.getUnread();
-		Mockito.when(connection.receiveBlocking()).thenReturn(newRequest(request)).thenReturn(null);
+		// Throwing an IllegalMonitorStateException simulates server shut down.
+		Mockito.when(connection.receiveBlocking()).thenReturn(newRequest(request)).thenThrow(IllegalMonitorStateException.class);
 		startServer();
 		
 		MailRequest reponse = MailRequest.getUnread();
@@ -75,10 +74,12 @@ public class ServerMailApplicationTest {
 		
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void verifyContactsResponseReturned() throws InterruptedException {
 		MailRequest request = MailRequest.getContacts();
-		Mockito.when(connection.receiveBlocking()).thenReturn(newRequest(request)).thenReturn(null);
+		// Throwing an IllegalMonitorStateException simulates server shut down.
+		Mockito.when(connection.receiveBlocking()).thenReturn(newRequest(request)).thenThrow(IllegalMonitorStateException.class);
 		startServer();
 		request.attachResponse(MailResponse.withContactsResults(new ArrayList<String>()));
 		
@@ -87,10 +88,12 @@ public class ServerMailApplicationTest {
 		Mockito.verify(connection).send(clientAddress, reponse);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void verifyMailResponseReturnedIncoming() throws InterruptedException {
 		MailRequest request = MailRequest.getIncoming(12);
-		Mockito.when(connection.receiveBlocking()).thenReturn(newRequest(request)).thenReturn(null);
+		// Throwing an IllegalMonitorStateException simulates server shut down.
+		Mockito.when(connection.receiveBlocking()).thenReturn(newRequest(request)).thenThrow(IllegalMonitorStateException.class);
 		startServer();
 		request.attachResponse(MailResponse.withContactsResults(new ArrayList<String>()));
 		
@@ -99,10 +102,12 @@ public class ServerMailApplicationTest {
 		Mockito.verify(connection).send(clientAddress, reponse);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void verifyMailResponseReturnedMailSent() throws InterruptedException {
 		MailRequest request = MailRequest.getMailSent(25);
-		Mockito.when(connection.receiveBlocking()).thenReturn(newRequest(request)).thenReturn(null);
+		// Throwing an IllegalMonitorStateException simulates server shut down.
+		Mockito.when(connection.receiveBlocking()).thenReturn(newRequest(request)).thenThrow(IllegalMonitorStateException.class);
 		startServer();
 		request.attachResponse(MailResponse.withContactsResults(new ArrayList<String>()));
 		
@@ -111,10 +116,12 @@ public class ServerMailApplicationTest {
 		Mockito.verify(connection).send(clientAddress, reponse);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void verifyMailResponseReturnedCorrespondences() throws InterruptedException {
 		MailRequest request = MailRequest.getCorrespondences("Judy", 30);
-		Mockito.when(connection.receiveBlocking()).thenReturn(newRequest(request)).thenReturn(null);
+		// Throwing an IllegalMonitorStateException simulates server shut down.
+		Mockito.when(connection.receiveBlocking()).thenReturn(newRequest(request)).thenThrow(IllegalMonitorStateException.class);
 		startServer();
 		request.attachResponse(MailResponse.withContactsResults(new ArrayList<String>()));
 		
