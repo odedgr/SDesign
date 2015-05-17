@@ -64,7 +64,7 @@ public class ClientMailApplicationTest {
 		
 		
 		Mockito.when(connection.receiveBlocking()).thenReturn(expected_response);
-		assertEquals(expected_result, client.getSentMail(7));
+		assertEquals(expected_result, client.getSentMails(7));
 		
 		Mockito.verify(connection).send(MailRequest.getMailSent(7));
 	}
@@ -168,6 +168,6 @@ public class ClientMailApplicationTest {
 	
 	@Test (expected=IllegalArgumentException.class)
 	public void failWithNegativeHowmanyInSentMail() {
-		client.getSentMail(-10);
+		client.getSentMails(-10);
 	}
 }
