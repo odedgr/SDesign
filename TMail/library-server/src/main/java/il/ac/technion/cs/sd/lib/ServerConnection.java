@@ -38,7 +38,7 @@ public class ServerConnection<Message> {
 	 * Create a server connection with a given address and a custom codec for the message type.
 	 * @param address the address of the server.
 	 * @param codec a codec to encode/decode the message type.
-	 * @return
+	 * @return the connection created.
 	 */
 	public static <Message> ServerConnection<Message> create(String address, Codec<Message> codec) {
 		if (address == null || address.isEmpty()) {
@@ -55,8 +55,9 @@ public class ServerConnection<Message> {
 	/**
 	 * Creates a server with a custom messenger instance. <i>intended for testing purposes.</i>
 	 * @param messenger the mock-messenger to use.
-	 * @return
+	 * @return the connection created.
 	 */
+	static <Message extends Serializable> ServerConnection<Message> createWithMockMessenger(Messenger messenger) {
 		return new ServerConnection<Message>(messenger, new SerializeCodec<Message>());
 	}
 	
@@ -67,7 +68,7 @@ public class ServerConnection<Message> {
 	 * 
 	 * @param messenger the mock-messenger to use.
 	 * @param codec the custom codec for the Message type object.
-	 * @return
+	 * @return the connection created.
 	 */
 	static <Message> ServerConnection<Message> createWithMockMessenger(Messenger messenger, Codec<Message> codec) {
 		return new ServerConnection<Message>(messenger, codec);

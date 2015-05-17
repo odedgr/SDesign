@@ -64,7 +64,7 @@ public class ClientConnection<Message> {
 	 * @param messenger - Messenger object to be used by this connection for communication. 
 	 * @return A new ClientConnection instance, ready for communication.
 	 */
-	public static <Message extends Serializable> ClientConnection<Message> createWithMockMessenger(String serverAddress, Messenger messenger) {
+	static <Message extends Serializable> ClientConnection<Message> createWithMockMessenger(String serverAddress, Messenger messenger) {
 		return new ClientConnection<Message>(serverAddress, messenger, new SerializeCodec<Message>());
 	}
 	
@@ -79,7 +79,7 @@ public class ClientConnection<Message> {
 	 * @param codec - Custom Codec used for Message conversion to/from byte[] 
 	 * @return A new ClientConnection instance, ready for communication.
 	 */
-	public static <Message> ClientConnection<Message> createWithMockMessenger(String serverAddress, Messenger messenger, Codec<Message> codec) {
+	static <Message> ClientConnection<Message> createWithMockMessenger(String serverAddress, Messenger messenger, Codec<Message> codec) {
 		return new ClientConnection<Message>(serverAddress, messenger, codec);
 	}
 	
