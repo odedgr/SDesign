@@ -43,7 +43,7 @@ public class ClientMailApplication {
 	 * Used for testing purposes.
 	 * @param connection the mock connection to use.
 	 */
-	public static ClientMailApplication createWithMockConnection(
+	static ClientMailApplication createWithMockConnection(
 			ClientConnection<MailRequest> connection) {
 		if (connection == null) {
 			throw new IllegalArgumentException();

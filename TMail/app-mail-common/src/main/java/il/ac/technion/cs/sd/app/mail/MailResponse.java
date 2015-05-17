@@ -57,4 +57,27 @@ public class MailResponse implements Serializable {
 		}
 		return this.contactsList;
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		MailResponse other = (MailResponse) obj;
+		if (mailList == null) {
+			if (other.mailList != null)
+				return false;
+		} else if (!mailList.equals(other.mailList))
+			return false;
+		if (contactsList == null) {
+			if (other.contactsList != null)
+				return false;
+		} else if (!contactsList.equals(other.contactsList))
+			return false;
+
+		return true;
+	}
 }

@@ -25,7 +25,7 @@ public class ServerMailApplication {
 	private DataSaver<List<MailEntry>> dataSaver;  
 
 	// loaded / stored to independent db
-	private Map<String, MailBox> mailboxes = new HashMap<String, MailBox>(); // <client address : client mailbox>
+	private Map<String, MailBox> mailboxes; // <client address : client mailbox>
 	
 	/**
 	 * Starts a new mail server. Servers with the same name retain all their information until
@@ -58,9 +58,25 @@ public class ServerMailApplication {
 	 * calls to {@link ServerMailApplication#start()}.
 	 */
 	public void start() {
+		if (connection == null) {
+			connection = ServerConnection.<MailRequest>create(address);
+		}
 		loadData();
-		connection = ServerConnection.<MailRequest>create(address);
-		
+		startRequestHandlingLoop();
+	}
+	
+	/**
+	 * Start the server with a connection given as a parameter. Used for testing.
+	 * @param connection the connection to use.
+	 */
+	void injectMockConnection(ServerConnection<MailRequest> connection) {
+		this.connection = connection;
+	}
+	
+	/**
+	 * Waits for requests, handles them, sends response (if needed) and waits for the next request.
+	 */
+	private void startRequestHandlingLoop() {
 		while (true) {
 			MessageWithSender<MailRequest> signed_request = connection.receiveBlocking();
 			String client = signed_request.sender;
@@ -83,6 +99,7 @@ public class ServerMailApplication {
 		if (null != connection) {
 			connection.kill();
 		}
+		connection = null;
 	}
 	
 	/**
@@ -95,7 +112,6 @@ public class ServerMailApplication {
 		dataSaver.clean();
 	}
 	
-	// TODO: is optional the best choice?
 	private Optional<MailResponse> handleRequest(String client, MailRequest request) {
 		MailResponse response = null;
 		switch (request.getType()) {
@@ -232,7 +248,7 @@ public class ServerMailApplication {
 	 */
 	private void loadData() {
 		history = new ArrayList<MailEntry>();
-		mailboxes = new HashMap<String, MailBox>(); // TODO: move out to function 'reset mailboxes'
+		mailboxes = new HashMap<String, MailBox>();
 		
 		Optional<List<MailEntry>> loaded_history = dataSaver.load();
 		if (!loaded_history.isPresent()) {
@@ -251,12 +267,10 @@ public class ServerMailApplication {
 	 * @return MailBox of the given client.
 	 */
 	private MailBox getMailBoxOfClient(String client) {
-		MailBox mb = mailboxes.get(client);
-		
-		if (null == mb) {
-			mb = new MailBox();
-			mailboxes.put(client, mb);
+		if (!mailboxes.containsKey(client)) {
+			mailboxes.put(client, new MailBox());
 		}
+		MailBox mb = mailboxes.get(client);
 		
 		return mb;
 	}
